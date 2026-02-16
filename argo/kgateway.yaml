@@ -10,7 +10,7 @@ spec:
   source:
     chart: kgateway-crds
     repoURL: cr.kgateway.dev/kgateway-dev/charts
-    targetRevision: v2.2.0
+    targetRevision: v2.3.0-beta.2
     helm:
       skipCrds: false
       parameters:
