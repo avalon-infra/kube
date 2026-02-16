@@ -1,19 +1,19 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: envoye-gateway
+  name: envoy-gateway
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    chart: eg
-    repoURL: docker.io/envoyproxy/gateway-helm
+    chart: gateway-helm
+    repoURL: docker.io/envoyproxy
     targetRevision: v1.7.0
   destination:
     name: in-cluster
-    namespace: envoye-gateway
+    namespace: envoy-gateway
   syncPolicy:
     syncOptions:
       - CreateNamespace=true
