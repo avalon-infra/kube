@@ -7,103 +7,106 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    chart: vault
-    repoURL: https://helm.releases.hashicorp.com
-    targetRevision: 0.32.0
-    helm:
-      values: |
-        global:
-          enabled: true
-          tlsDisable: false
-          resources:
-            requests:
-              memory: 256Mi
-              cpu: 250m
-            limits:
-              memory: 256Mi
-              cpu: 250m
-
-        server:
-          # These Resource Limits are in line with node requirements in the
-          # Vault Reference Architecture for a Small Cluster
-          resources:
-            requests:
-              memory: 2Gi
-              cpu: 500m
-            limits:
-              memory: 4Gi
-              cpu: 500m
-
-          # For HA configuration and because we need to manually init the vault,
-          # we need to define custom readiness/liveness Probe settings
-          readinessProbe:
+  sources:
+    - chart: vault
+      repoURL: https://helm.releases.hashicorp.com
+      targetRevision: 0.32.0
+      helm:
+        values: |
+          global:
             enabled: true
-            path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
-          livenessProbe:
-            enabled: true
-            path: "/v1/sys/health?standbyok=true"
-            initialDelaySeconds: 60
+            tlsDisable: false
+            resources:
+              requests:
+                memory: 256Mi
+                cpu: 250m
+              limits:
+                memory: 256Mi
+                cpu: 250m
 
-          # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
-          # used to include variables required for auto-unseal.
-          extraEnvironmentVars:
-            VAULT_CACERT: /vault/userconfig/vault-ha-tls/vault.ca
-            VAULT_TLSCERT: /vault/userconfig/vault-ha-tls/vault.crt
-            VAULT_TLSKEY: /vault/userconfig/vault-ha-tls/vault.key
+          server:
+            # These Resource Limits are in line with node requirements in the
+            # Vault Reference Architecture for a Small Cluster
+            resources:
+              requests:
+                memory: 2Gi
+                cpu: 500m
+              limits:
+                memory: 4Gi
+                cpu: 500m
 
-          # This configures the Vault Statefulset to create a PVC for audit logs.
-          # See https://www.vaultproject.io/docs/audit/index.html to know more
-          auditStorage:
-            enabled: true
-
-          volumes:
-            - name: userconfig-vault-ha-tls
-              secret:
-                defaultMode: 420
-                secretName: vault-ha-tls
-          volumeMounts:
-            - mountPath: /vault/userconfig/vault-ha-tls
-              name: userconfig-vault-ha-tls
-              readOnly: true
-
-
-          standalone:
-            enabled: false
-
-          # Run Vault in "HA" mode.
-          ha:
-            enabled: true
-            replicas: 1
-            raft:
+            # For HA configuration and because we need to manually init the vault,
+            # we need to define custom readiness/liveness Probe settings
+            readinessProbe:
               enabled: true
-              setNodeId: true
+              path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
+            livenessProbe:
+              enabled: true
+              path: "/v1/sys/health?standbyok=true"
+              initialDelaySeconds: 60
 
-              config: |
-                ui = true
-                cluster_name = "vault-integrated-storage"
-                listener "tcp" {
-                  tls_disable = 0
-                  address = "[::]:8200"
-                  cluster_address = "[::]:8201"
-                  tls_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
-                  tls_key_file  = "/vault/userconfig/vault-ha-tls/vault.key"
-                  tls_client_ca_file = "/vault/userconfig/vault-ha-tls/vault.ca"
-                }
+            # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
+            # used to include variables required for auto-unseal.
+            extraEnvironmentVars:
+              VAULT_CACERT: /vault/userconfig/vault-ha-tls/vault.ca
+              VAULT_TLSCERT: /vault/userconfig/vault-ha-tls/vault.crt
+              VAULT_TLSKEY: /vault/userconfig/vault-ha-tls/vault.key
 
-                storage "raft" {
-                  path = "/vault/data"
-                }
+            # This configures the Vault Statefulset to create a PVC for audit logs.
+            # See https://www.vaultproject.io/docs/audit/index.html to know more
+            auditStorage:
+              enabled: true
 
-                disable_mlock = true
-                service_registration "kubernetes" {}
+            volumes:
+              - name: userconfig-vault-ha-tls
+                secret:
+                  defaultMode: 420
+                  secretName: vault-ha-tls
+            volumeMounts:
+              - mountPath: /vault/userconfig/vault-ha-tls
+                name: userconfig-vault-ha-tls
+                readOnly: true
 
-        # Vault UI
-        ui:
-          enabled: true
-          serviceType: "LoadBalancer"
-          serviceNodePort: null
-          externalPort: 8200
+
+            standalone:
+              enabled: false
+
+            # Run Vault in "HA" mode.
+            ha:
+              enabled: true
+              replicas: 1
+              raft:
+                enabled: true
+                setNodeId: true
+
+                config: |
+                  ui = true
+                  cluster_name = "vault-integrated-storage"
+                  listener "tcp" {
+                    tls_disable = 0
+                    address = "[::]:8200"
+                    cluster_address = "[::]:8201"
+                    tls_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+                    tls_key_file  = "/vault/userconfig/vault-ha-tls/vault.key"
+                    tls_client_ca_file = "/vault/userconfig/vault-ha-tls/vault.ca"
+                  }
+
+                  storage "raft" {
+                    path = "/vault/data"
+                  }
+
+                  disable_mlock = true
+                  service_registration "kubernetes" {}
+
+          # Vault UI
+          ui:
+            enabled: true
+            serviceType: "LoadBalancer"
+            serviceNodePort: null
+            externalPort: 8200
+    - repoURL: https://github.com/avalon-infra/kube.git
+      path: apps/vault
+      targetRevision: HEAD
   destination:
     name: in-cluster
     namespace: vault
