@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: vault
   annotations:
-    #app.kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: cf-issuer
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   rules:
@@ -17,3 +17,7 @@ spec:
               name: vault
               port:
                 number: 8200
+    tls:
+      - hosts:
+        - vault.matiix310.com
+        secretName: vault-tls
