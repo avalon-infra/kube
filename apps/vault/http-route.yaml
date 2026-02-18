@@ -10,7 +10,7 @@ spec:
   rules:
     - backendRefs:
         - group: ""
-          kind: Service
+          kind: Pod
           name: vault-0
           port: 8200
           weight: 1
