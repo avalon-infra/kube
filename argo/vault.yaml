@@ -23,6 +23,9 @@ spec:
               limits:
                 memory: 256Mi
                 cpu: 250m
+          
+          injector:
+            enabled: false
 
           server:
             # These Resource Limits are in line with node requirements in the
@@ -55,7 +58,7 @@ spec:
             # This configures the Vault Statefulset to create a PVC for audit logs.
             # See https://www.vaultproject.io/docs/audit/index.html to know more
             auditStorage:
-              enabled: true
+              enabled: false
 
             volumes:
               - name: userconfig-vault-ha-tls
@@ -97,13 +100,6 @@ spec:
 
                   disable_mlock = true
                   service_registration "kubernetes" {}
-
-          # Vault UI
-          ui:
-            enabled: true
-            serviceType: "LoadBalancer"
-            serviceNodePort: null
-            externalPort: 8200
     - repoURL: https://github.com/avalon-infra/kube.git
       path: apps/vault
       targetRevision: HEAD
