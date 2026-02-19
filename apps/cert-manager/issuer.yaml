@@ -1,8 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: cf-issuer
-  namespace: cert-manager
+  name: ca-issuer
 spec:
-  ca:
-    secretName: ca-key-pair
+  acme:
+    solvers:
+    - dns01:
+        cloudflare:
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token
