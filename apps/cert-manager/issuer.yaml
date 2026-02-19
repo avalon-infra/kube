@@ -4,6 +4,10 @@ metadata:
   name: ca-issuer
 spec:
   acme:
+    email: matiix310@proton.me
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: cloudflare-key
     solvers:
     - dns01:
         cloudflare:
