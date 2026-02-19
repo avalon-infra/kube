@@ -11,6 +11,135 @@ spec:
     chart: ingress-nginx
     repoURL: https://kubernetes.github.io/ingress-nginx
     targetRevision: 4.13.7
+    helm:
+      values: |
+        controller:
+          # Deploy multiple replicas for high availability
+          # Minimum 2 replicas recommended for production
+          replicaCount: 1
+
+          # Resource requests and limits for the controller pods
+          # Adjust based on your traffic volume and cluster capacity
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+
+          # Service configuration for LoadBalancer type
+          # MetalLB will assign an IP from the configured pool
+          service:
+            type: LoadBalancer
+            # Annotations to control MetalLB behavior
+            annotations:
+              # Request a specific IP from MetalLB (optional)
+              # metallb.universe.tf/loadBalancerIPs: "192.168.1.240"
+              # Specify which address pool to use (optional if autoAssign is true)
+              metallb.universe.tf/address-pool: nginx-ingress-pool
+            # External traffic policy affects how traffic is routed
+            # Local: preserves client IP but may cause uneven load distribution
+            # Cluster: may lose client IP but provides better load balancing
+            externalTrafficPolicy: Local
+
+          # Health check configuration for the ingress controller
+          # These settings ensure proper pod lifecycle management
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 10254
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 10254
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+
+          # NGINX configuration for performance tuning
+          # These settings optimize the ingress controller for production use
+          config:
+            # Enable gzip compression for responses
+            use-gzip: "true"
+            gzip-level: "6"
+            gzip-types: "application/json application/javascript text/css text/plain text/xml application/xml"
+
+            # Connection keep-alive settings
+            # Reduces latency for subsequent requests from the same client
+            keep-alive: "75"
+            keep-alive-requests: "1000"
+
+            # Upstream keep-alive for backend connections
+            # Reuses connections to backend services for better performance
+            upstream-keepalive-connections: "100"
+            upstream-keepalive-timeout: "60"
+            upstream-keepalive-requests: "10000"
+
+            # Proxy buffer settings for handling large responses
+            proxy-buffer-size: "16k"
+            proxy-buffers-number: "4"
+            proxy-body-size: "100m"
+
+            # Timeouts for various operations
+            proxy-connect-timeout: "60"
+            proxy-read-timeout: "60"
+            proxy-send-timeout: "60"
+
+            # SSL/TLS settings for secure connections
+            ssl-protocols: "TLSv1.2 TLSv1.3"
+            ssl-ciphers: "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384"
+            ssl-prefer-server-ciphers: "true"
+
+            # Enable HSTS for improved security
+            hsts: "true"
+            hsts-max-age: "31536000"
+            hsts-include-subdomains: "true"
+
+            # Logging configuration
+            log-format-upstream: '$remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_length $request_time [$proxy_upstream_name] [$proxy_alternative_upstream_name] $upstream_addr $upstream_response_length $upstream_response_time $upstream_status $req_id'
+
+            # Enable real IP detection for client IP preservation
+            use-forwarded-headers: "true"
+            compute-full-forwarded-for: "true"
+            use-proxy-protocol: "false"
+
+          # Pod anti-affinity to spread replicas across nodes
+          # Improves availability by preventing all replicas on one node
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                      - ingress-nginx
+                  topologyKey: kubernetes.io/hostname
+
+          # Metrics configuration for monitoring
+          # Enable Prometheus metrics for observability
+          metrics:
+            enabled: true
+            serviceMonitor:
+              enabled: false  # Set to true if using Prometheus Operator
+
+        # Default backend for handling requests that don't match any ingress rule
+        defaultBackend:
+          enabled: true
+          replicaCount: 1
   destination:
     name: in-cluster
     namespace: ingress-nginx
