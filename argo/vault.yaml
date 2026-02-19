@@ -40,20 +40,16 @@ spec:
 
             # For HA configuration and because we need to manually init the vault,
             # we need to define custom readiness/liveness Probe settings
-            readinessProbe:
-              enabled: true
-              path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
-            livenessProbe:
-              enabled: true
-              path: "/v1/sys/health?standbyok=true"
-              initialDelaySeconds: 60
+            # readinessProbe:
+            #   enabled: true
+            #   path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
+            # livenessProbe:
+            #   enabled: true
+            #   path: "/v1/sys/health?standbyok=true"
+            #   initialDelaySeconds: 60
 
             # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
             # used to include variables required for auto-unseal.
-            extraEnvironmentVars:
-              VAULT_CACERT: /vault/userconfig/vault-ha-tls/vault.ca
-              VAULT_TLSCERT: /vault/userconfig/vault-ha-tls/vault.crt
-              VAULT_TLSKEY: /vault/userconfig/vault-ha-tls/vault.key
 
             # This configures the Vault Statefulset to create a PVC for audit logs.
             # See https://www.vaultproject.io/docs/audit/index.html to know more
@@ -64,7 +60,8 @@ spec:
               - name: userconfig-vault-ha-tls
                 secret:
                   defaultMode: 420
-                  secretName: vault-ha-tls
+                  secretName: vault-tls
+
             volumeMounts:
               - mountPath: /vault/userconfig/vault-ha-tls
                 name: userconfig-vault-ha-tls
@@ -72,10 +69,6 @@ spec:
 
 
             standalone:
-              enabled: false
-
-            # Run Vault in "HA" mode.
-            ha:
               enabled: true
               replicas: 1
               raft:
@@ -97,9 +90,6 @@ spec:
                   storage "raft" {
                     path = "/vault/data"
                   }
-
-                  disable_mlock = true
-                  service_registration "kubernetes" {}
     - repoURL: https://github.com/avalon-infra/kube.git
       path: apps/vault
       targetRevision: HEAD
