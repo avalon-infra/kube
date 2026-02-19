@@ -3,8 +3,10 @@ kind: Ingress
 metadata:
   name: vault
   annotations:
-    cert-manager.io/cluster-issuer: cf-issuer
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    cert-manager.io/cluster-issuer: cloudflare
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    kubernetes.io/ingress.class: nginx
 spec:
   rules:
   - host: vault.matiix310.dev
