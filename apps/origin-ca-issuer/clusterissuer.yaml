@@ -1,0 +1,17 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: prod-cluster-issuer
+spec:
+  acme:
+    email: "lucas.stephan.12@outlook.fr"
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: prod-cluster-issuer-account-key
+    solvers:
+    - dns01:
+        cloudflare:
+          email: "lucas.stephan.12@outlook.fr"
+          apiKeySecretRef:
+            name: cfapi-token
+            key: key
