@@ -6,6 +6,9 @@ rules:
 - apiGroups: ["cert-manager.io"]
   resources: ["certificaterequests/approval"]
   verbs: ["update"]
+- apiGroups: [""]
+  resources: ["certificaterequests/status"]
+  verbs: ["patch"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
