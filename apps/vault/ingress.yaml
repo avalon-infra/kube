@@ -21,5 +21,5 @@ spec:
                   number: 8200
   tls:
     - hosts:
-      - vault.matiix310.dev
+        - vault.matiix310.dev
       secretName: vault-tls

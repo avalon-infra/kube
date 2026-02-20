@@ -7,13 +7,16 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    chart: cert-manager
-    repoURL: quay.io/jetstack/charts
-    targetRevision: v1.19.2
-    helm:
-      values: |
-        installCRDs: true
+  sources:
+    - chart: cert-manager
+      repoURL: quay.io/jetstack/charts
+      targetRevision: v1.19.2
+      helm:
+        values: |
+          installCRDs: true
+    - repoURL: https://github.com/avalon-infra/kube.git
+      targetRevision: HEAD
+      path: apps/cert-manager
   destination:
     name: in-cluster
     namespace: cert-manager
