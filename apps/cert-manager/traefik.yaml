@@ -1,0 +1,9 @@
+apiVersion: traefik.io/v1alpha1
+kind: TLSOption
+metadata:
+  name: skip-tls-verif
+spec:
+  clientAuth:
+    secretNames:
+      - tls-certificate
+    clientAuthType: RequireAndVerifyClientCert

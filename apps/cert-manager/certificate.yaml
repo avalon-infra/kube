@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tls-certificate
+spec:
+  secretName: tls-certificate
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: matiix310.dev
+  dnsNames:
+    - matiix310.dev
+    - "*.matiix310.dev"
