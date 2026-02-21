@@ -11,10 +11,9 @@ spec:
     solvers:
       - dns01:
           cloudflare:
-            email: "lucas.stephan.12@outlook.fr"
-            apiKeySecretRef:
+            apiTokenSecretRef:
               name: cfapi-token
-              key: key
+              key: api-token
         selector:
           dnsZones:
             - matiix310.dev
