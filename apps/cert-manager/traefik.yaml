@@ -4,6 +4,4 @@ metadata:
   name: skip-tls-verif
 spec:
   clientAuth:
-    secretNames:
-      - tls-certificate
-    clientAuthType: RequireAndVerifyClientCert
+    clientAuthType: RequireAnyClientCert
