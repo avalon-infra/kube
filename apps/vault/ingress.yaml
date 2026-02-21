@@ -20,6 +20,6 @@ spec:
       kind: Rule
       services:
         - name: vault
-          port: 443
+          port: 8200
           scheme: https
           serversTransport: traefik-vault-transport
