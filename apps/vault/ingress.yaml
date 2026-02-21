@@ -1,22 +1,25 @@
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.containo.us/v1alpha1
+kind: ServersTransport
 metadata:
-  name: vault
-  annotations:
-    traefik.ingress.kubernetes.io/router.tls.insecureSkipVerify: "true"
+  name: traefik-vault-transport
 spec:
-  rules:
-    - host: vault.matiix310.dev
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: vault
-                port:
-                  number: 8200
+  serverName: "vault"
+  insecureSkipVerify: true
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vault-route
+spec:
+  entryPoints:
+    - websecure
   tls:
-    - hosts:
-        - vault.matiix310.dev
-      secretName: tls-certificate
+    secretName: tls-certificate
+  routes:
+    - match: Host(`vault.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: vault
+          port: 443
+          scheme: https
+          serversTransport: traefik-vault-transport
