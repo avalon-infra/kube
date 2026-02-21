@@ -5,7 +5,6 @@ metadata:
   annotations:
     cert-manager.io/issuer: prod-cluster-issuer
     cert-manager.io/issuer-kind: ClusterIssuer
-    kubernetes.io/ingress.class: traefik
 spec:
   rules:
     - host: vault.matiix310.dev
