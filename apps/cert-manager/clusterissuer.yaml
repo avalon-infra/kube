@@ -9,9 +9,12 @@ spec:
     privateKeySecretRef:
       name: prod-cluster-issuer-account-key
     solvers:
-    - dns01:
-        cloudflare:
-          email: "lucas.stephan.12@outlook.fr"
-          apiKeySecretRef:
-            name: cfapi-token
-            key: key
+      - dns01:
+          cloudflare:
+            email: "lucas.stephan.12@outlook.fr"
+            apiKeySecretRef:
+              name: cfapi-token
+              key: key
+        selector:
+          dnsZones:
+            - matiix310.dev
