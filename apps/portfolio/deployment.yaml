@@ -12,6 +12,8 @@ spec:
       labels:
         app: portfolio
     spec:
+      imagePullSecrets:
+        - name: github-dockerconfig
       containers:
         - name: portfolio
           image: ghcr.io/avalon-infra/portfolio:latest
