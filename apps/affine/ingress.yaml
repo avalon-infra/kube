@@ -1,0 +1,28 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: affine-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: affine-tls
+  routes:
+    - match: Host(`affine.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: affine
+          port: 3010
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: affine-tls
+spec:
+  secretName: affine-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: affine.matiix310.dev
+  dnsNames:
+    - "affine.matiix310.dev"

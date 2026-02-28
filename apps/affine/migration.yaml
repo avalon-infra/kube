@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: affine-migration
+spec:
+  template:
+    spec:
+      containers:
+        - name: affine-migration
+          image: ghcr.io/toeverything/affine:stable
+          command: ["sh", "-c", "node ./scripts/self-host-predeploy.js"]
+          envFrom:
+            - secretRef:
+                name: affine-env
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://$(DB_USERNAME):$(DB_PASSWORD)@postgres:5432/affine"
+          volumeMounts:
+            - name: affine-storage
+              mountPath: /root/.affine/storage
+            - name: affine-config
+              mountPath: /root/.affine/config
+      restartPolicy: OnFailure
+      volumes:
+        - name: affine-storage
+          persistentVolumeClaim:
+            claimName: affine-storage
+        - name: affine-config
+          persistentVolumeClaim:
+            claimName: affine-config
