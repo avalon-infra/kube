@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vaultwarden-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: tls-certificate
+  routes:
+    - match: Host(`vaultwarden.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: vaultwarden
+          port: 80
