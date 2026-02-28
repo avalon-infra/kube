@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: authentik
       repoURL: https://charts.goauthentik.io
-      targetRevision: 15.11.0
+      targetRevision: "2026.2.0"
       helm:
         valueFiles:
           - "$values/apps/authentik/values.yaml"
