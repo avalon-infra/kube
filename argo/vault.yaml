@@ -23,7 +23,7 @@ spec:
               limits:
                 memory: 256Mi
                 cpu: 250m
-          
+
           injector:
             enabled: false
 
@@ -50,6 +50,9 @@ spec:
 
             # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
             # used to include variables required for auto-unseal.
+            extraEnvironmentVars:
+              VAULT_TLSCERT: /vault/userconfig/tls-certificate/tls.crt
+              VAULT_TLSKEY: /vault/userconfig/tls-certificate/tls.key
 
             # This configures the Vault Statefulset to create a PVC for audit logs.
             # See https://www.vaultproject.io/docs/audit/index.html to know more
@@ -57,24 +60,24 @@ spec:
               enabled: false
 
             volumes:
-              - name: userconfig-vault-ha-tls
+              - name: userconfig-tls-certificate
                 secret:
-                  defaultMode: 420
-                  secretName: vault-tls
+                  secretName: tls-certificate
 
             volumeMounts:
-              - mountPath: /vault/userconfig/vault-ha-tls
-                name: userconfig-vault-ha-tls
+              - mountPath: /vault/userconfig/tls-certificate
+                name: userconfig-tls-certificate
                 readOnly: true
 
-
             standalone:
+              enabled: false
+
+            ha:
               enabled: true
               replicas: 1
               raft:
                 enabled: true
                 setNodeId: true
-
                 config: |
                   ui = true
                   cluster_name = "vault-integrated-storage"
@@ -82,14 +85,17 @@ spec:
                     tls_disable = 0
                     address = "[::]:8200"
                     cluster_address = "[::]:8201"
-                    tls_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
-                    tls_key_file  = "/vault/userconfig/vault-ha-tls/vault.key"
-                    tls_client_ca_file = "/vault/userconfig/vault-ha-tls/vault.ca"
+                    tls_cert_file = "/vault/userconfig/tls-certificate/tls.crt"
+                    tls_key_file  = "/vault/userconfig/tls-certificate/tls.key"
                   }
 
                   storage "raft" {
                     path = "/vault/data"
                   }
+
+                  disable_mlock = true
+                  service_registration "kubernetes" {}
+
     - repoURL: https://github.com/avalon-infra/kube.git
       path: apps/vault
       targetRevision: HEAD
