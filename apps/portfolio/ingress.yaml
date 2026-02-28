@@ -1,12 +1,4 @@
 apiVersion: traefik.io/v1alpha1
-kind: ServersTransport
-metadata:
-  name: traefik-portfolio-transport
-spec:
-  serverName: "portfolio"
-  insecureSkipVerify: true
----
-apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: portfolio-route
@@ -21,5 +13,3 @@ spec:
       services:
         - name: portfolio
           port: 80
-          scheme: http
-          serversTransport: traefik-portfolio-transport

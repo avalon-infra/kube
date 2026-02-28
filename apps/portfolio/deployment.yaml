@@ -6,11 +6,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: portfolio-server
+      app: portfolio
   template:
     metadata:
       labels:
-        app: portfolio-server
+        app: portfolio
     spec:
       imagePullSecrets:
         - name: github-dockerconfig
@@ -18,7 +18,8 @@ spec:
         - name: portfolio
           image: ghcr.io/avalon-infra/portfolio:latest
           ports:
-            - containerPort: 80
+            - name: http
+              containerPort: 80
           resources:
             requests:
               memory: "64Mi"
