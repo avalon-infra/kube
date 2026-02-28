@@ -1,8 +1,8 @@
 authentik:
   postgresql:
-    host: postgres.domain.tld
-    user: file:///postgres-creds/username
-    password: file:///postgres-creds/password
+    host: postgres.affine.svc.cluster.local
+    user: file:///postgres-creds/POSTGRES_USER
+    password: file:///postgres-creds/POSTGRES_PASSWORD
 
   blueprints:
     files:
