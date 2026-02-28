@@ -6,11 +6,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: portfolio
+      app: portfolio-server
   template:
     metadata:
       labels:
-        app: portfolio
+        app: portfolio-server
     spec:
       imagePullSecrets:
         - name: github-dockerconfig
