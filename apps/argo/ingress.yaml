@@ -1,0 +1,27 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: traefik-argocd-transport
+  namespace: argocd
+spec:
+  serverName: "argocd-server"
+  insecureSkipVerify: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: argocd-route
+  namespace: argocd
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: tls-certificate
+  routes:
+    - match: Host(`argocd.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: argocd-server
+          port: 443
+          scheme: https
+          serversTransport: traefik-argocd-transport

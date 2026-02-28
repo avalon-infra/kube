@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tls-certificate
+  namespace: argocd
+spec:
+  secretName: tls-certificate
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: argocd.matiix310.dev
+  dnsNames:
+    - "argocd.matiix310.dev"
