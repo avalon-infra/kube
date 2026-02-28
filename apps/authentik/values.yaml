@@ -4,6 +4,12 @@ authentik:
     user: file:///postgres-creds/POSTGRES_USER
     password: file:///postgres-creds/POSTGRES_PASSWORD
 
+  existingSecret: authentik-postgres-credentials
+  secretKey: AUTHENTIK_SECRET_KEY
+
+  redis:
+    host: authentik-redis-master
+
   blueprints:
     files:
       - |
