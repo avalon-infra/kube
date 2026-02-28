@@ -1,0 +1,49 @@
+authentik:
+  postgresql:
+    host: postgres.domain.tld
+    user: file:///postgres-creds/username
+    password: file:///postgres-creds/password
+
+  blueprints:
+    files:
+      - |
+        version: 1
+        metadata:
+          name: sso-blueprint
+        entries:
+          - model: authentik_providers_proxy.proxyprovider
+            state: present
+            identifiers:
+              name: sso-proxy
+            attrs:
+              authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
+              internal_host: http://authentik-outpost-embedded.authentik.svc.cluster.local:9000
+              external_host: https://auth.matiix310.dev
+              mode: forward_auth
+          - model: authentik_core.application
+            state: present
+            identifiers:
+              slug: sso-portal
+            attrs:
+              name: SSO Portal
+              provider: !Find [authentik_providers_proxy.proxyprovider, [name, sso-proxy]]
+
+server:
+  volumes:
+    - name: postgres-creds
+      secret:
+        secretName: authentik-postgres-credentials
+  volumeMounts:
+    - name: postgres-creds
+      mountPath: /postgres-creds
+      readOnly: true
+
+worker:
+  volumes:
+    - name: postgres-creds
+      secret:
+        secretName: authentik-postgres-credentials
+  volumeMounts:
+    - name: postgres-creds
+      mountPath: /postgres-creds
+      readOnly: true
