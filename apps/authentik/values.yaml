@@ -1,6 +1,6 @@
 authentik:
   postgresql:
-    host: postgres.affine.svc.cluster.local
+    host: postgres.authentik.svc.cluster.local
     user: file:///postgres-creds/POSTGRES_USER
     password: file:///postgres-creds/POSTGRES_PASSWORD
 
