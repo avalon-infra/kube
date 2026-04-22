@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: blinko-tls
+spec:
+  secretName: blinko-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: blinko.matiix310.dev
+  dnsNames:
+    - "blinko.matiix310.dev"
