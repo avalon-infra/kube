@@ -1,4 +1,11 @@
 apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: traefik-blinko-transport
+spec:
+  serverName: "blinko"
+---
+apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: blinko-route
@@ -6,23 +13,12 @@ spec:
   entryPoints:
     - websecure
   tls:
-    secretName: blinko-tls
+    secretName: tls-certificate
   routes:
     - match: Host(`blinko.matiix310.dev`)
       kind: Rule
       services:
         - name: blinko
           port: 80
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: blinko-tls
-spec:
-  secretName: blinko-tls
-  issuerRef:
-    name: prod-cluster-issuer
-    kind: ClusterIssuer
-  commonName: blinko.matiix310.dev
-  dnsNames:
-    - "blinko.matiix310.dev"
+          scheme: https
+          serversTransport: traefik-blinko-transport
