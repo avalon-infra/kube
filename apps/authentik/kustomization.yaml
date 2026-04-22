@@ -3,6 +3,8 @@ kind: Kustomization
 
 resources:
   - postgres
+  - certificate.yaml
+  - ingress.yaml
   - middleware.yaml
   - secret-authentik.yaml
   - secret-postgres.yaml
