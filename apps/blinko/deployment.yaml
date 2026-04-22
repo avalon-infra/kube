@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blinko
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blinko
+  template:
+    metadata:
+      labels:
+        app: blinko
+    spec:
+      containers:
+        - name: blinko
+          image: blinkospace/blinko:1.8.7
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: NEXTAUTH_URL
+              value: "https://blinko.matiix310.dev"
+            - name: NEXT_PUBLIC_BASE
+              value: "https://blinko.matiix310.dev"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: blinko-env
+                  key: DATABASE_URL
+            - name: NEXTAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: blinko-env
+                  key: NEXTAUTH_SECRET
+          volumeMounts:
+            - name: blinko-storage
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "1Go"
+              cpu: "100m"
+            limits:
+              memory: "2Gi"
+              cpu: "500m"
+      volumes:
+        - name: blinko-storage
+          persistentVolumeClaim:
+            claimName: blinko-storage
