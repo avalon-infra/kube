@@ -6,12 +6,18 @@ authentik:
     name: authentik
     port: 5432
 
-  existingSecret:
-    secretName: authentik-secret
-    secretKey: AUTHENTIK_SECRET_KEY
+env:
+  AUTHENTIK_SECRET_KEY:
+    valueFrom:
+      secretKeyRef:
+        name: authentik-secret
+        key: AUTHENTIK_SECRET_KEY
 
 postgresql:
   enabled: false
+
+redis:
+  enabled: true
 
 server:
   volumes:
