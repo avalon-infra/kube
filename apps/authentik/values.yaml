@@ -9,20 +9,24 @@ authentik:
     secretName: authentik-secret
     secretKey: AUTHENTIK_SECRET_KEY
 
-env:
-  AUTHENTIK_POSTGRESQL__HOST: "postgres.authentik.svc.cluster.local"
-  AUTHENTIK_POSTGRESQL__PORT: "5432"
-  AUTHENTIK_POSTGRESQL__NAME: "authentik"
-  AUTHENTIK_POSTGRESQL__USER:
-    valueFrom:
-      secretKeyRef:
-        name: authentik-postgres-credentials
-        key: username
-  AUTHENTIK_POSTGRESQL__PASSWORD:
-    valueFrom:
-      secretKeyRef:
-        name: authentik-postgres-credentials
-        key: password
+global:
+  env:
+    - name: AUTHENTIK_POSTGRESQL__HOST
+      value: "postgres.authentik.svc.cluster.local"
+    - name: AUTHENTIK_POSTGRESQL__PORT
+      value: "5432"
+    - name: AUTHENTIK_POSTGRESQL__NAME
+      value: "authentik"
+    - name: AUTHENTIK_POSTGRESQL__USER
+      valueFrom:
+        secretKeyRef:
+          name: authentik-postgres-credentials
+          key: username
+    - name: AUTHENTIK_POSTGRESQL__PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-postgres-credentials
+          key: password
 
 postgresql:
   enabled: false
