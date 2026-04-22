@@ -19,6 +19,6 @@ spec:
       kind: Rule
       services:
         - name: blinko
-          port: 80
-          scheme: https
+          port: 1111
+          scheme: http
           serversTransport: traefik-blinko-transport

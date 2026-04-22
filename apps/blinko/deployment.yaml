@@ -16,7 +16,7 @@ spec:
         - name: blinko
           image: blinkospace/blinko:1.8.7
           ports:
-            - containerPort: 80
+            - containerPort: 1111
               name: http
           env:
             - name: NODE_ENV
