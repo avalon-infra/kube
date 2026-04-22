@@ -5,13 +5,9 @@ authentik:
     password: file:///postgres-creds/password
     name: authentik
     port: 5432
-
-env:
-  AUTHENTIK_SECRET_KEY:
-    valueFrom:
-      secretKeyRef:
-        name: authentik-secret
-        key: AUTHENTIK_SECRET_KEY
+  existingSecret:
+    secretName: authentik-secret
+    secretKey: AUTHENTIK_SECRET_KEY
 
 postgresql:
   enabled: false
