@@ -5,7 +5,6 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: do-block-storage
   resources:
     requests:
       storage: 20Gi
