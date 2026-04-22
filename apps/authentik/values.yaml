@@ -4,37 +4,6 @@ authentik:
     user: file:///postgres-creds/POSTGRES_USER
     password: file:///postgres-creds/POSTGRES_PASSWORD
 
-  existingSecret:
-    secretName: authentik-postgres-credentials
-    secretKey: AUTHENTIK_SECRET_KEY
-
-  redis:
-    host: authentik-redis-master
-
-  blueprints:
-    files:
-      - |
-        version: 1
-        metadata:
-          name: sso-blueprint
-        entries:
-          - model: authentik_providers_proxy.proxyprovider
-            state: present
-            identifiers:
-              name: sso-proxy
-            attrs:
-              authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
-              internal_host: http://authentik-outpost-embedded.authentik.svc.cluster.local:9000
-              external_host: https://auth.matiix310.dev
-              mode: forward_auth
-          - model: authentik_core.application
-            state: present
-            identifiers:
-              slug: sso-portal
-            attrs:
-              name: SSO Portal
-              provider: !Find [authentik_providers_proxy.proxyprovider, [name, sso-proxy]]
-
 server:
   volumes:
     - name: postgres-creds
