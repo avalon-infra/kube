@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - postgres
+  - certificate.yaml
   - deployment.yaml
   - ingress.yaml
   - pvc.yaml
