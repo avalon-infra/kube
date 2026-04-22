@@ -40,7 +40,7 @@ spec:
               mountPath: /var/lib/postgresql/data
           resources:
             requests:
-              memory: "1Go"
+              memory: "1Gi"
               cpu: "100m"
             limits:
               memory: "2Gi"
