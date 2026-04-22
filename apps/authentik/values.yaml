@@ -27,6 +27,16 @@ global:
         secretKeyRef:
           name: authentik-postgres-credentials
           key: password
+    - name: POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: authentik-postgres-credentials
+          key: password
+    - name: POSTGRES_USER
+      valueFrom:
+        secretKeyRef:
+          name: authentik-postgres-credentials
+          key: username
 
 postgresql:
   enabled: false

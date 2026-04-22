@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: authentik-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: authentik-tls
+  routes:
+    - match: Host(`auth.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: authentik-server
+          port: 9000
