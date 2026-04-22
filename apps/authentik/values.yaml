@@ -4,6 +4,10 @@ authentik:
     user: file:///postgres-creds/POSTGRES_USER
     password: file:///postgres-creds/POSTGRES_PASSWORD
 
+  existingSecret:
+    secretName: authentik-postgres-credentials
+    secretKey: AUTHENTIK_SECRET_KEY
+
 server:
   volumes:
     - name: postgres-creds
