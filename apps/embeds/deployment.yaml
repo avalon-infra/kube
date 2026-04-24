@@ -1,0 +1,44 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: embeds
+  labels:
+    app: embeds
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: embeds
+  template:
+    metadata:
+      labels:
+        app: embeds
+    spec:
+      containers:
+        - name: embeds
+          image: ghcr.io/matiix310/embed-server:0.1
+          ports:
+            - containerPort: 3000
+          env:
+            - name: PORT
+              value: "3000"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 3000
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"

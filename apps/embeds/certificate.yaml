@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: embeds-tls
+spec:
+  secretName: embeds-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: embeds.matiix310.dev
+  dnsNames:
+    - "embeds.matiix310.dev"

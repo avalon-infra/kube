@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: embeds-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: embeds-tls
+  routes:
+    - match: Host(`embeds.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: embeds
+          port: 3000
