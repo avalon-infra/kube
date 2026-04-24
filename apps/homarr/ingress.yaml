@@ -12,4 +12,4 @@ spec:
       kind: Rule
       services:
         - name: homarr
-          port: 7575
+          port: 3000
