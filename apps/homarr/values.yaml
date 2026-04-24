@@ -1,0 +1,22 @@
+persistence:
+  homarrDatabase:
+    enabled: true
+    storageClassName: "default"
+    size: "1Gi"
+
+database:
+  type: postgresql
+
+ingress:
+  enabled: false
+
+service:
+  enabled: false
+
+envSecrets:
+  dbCredentials:
+    dbUrlKey: db-url
+    existingSecret: db-secret
+  dbEncryption:
+    key: db-encryption-key
+    existingSecret: db-secret
