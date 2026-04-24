@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: embed-server
+  name: embeds
 spec:
   selector:
-    app: embed-server
+    app: embeds
   ports:
     - port: 3000
       targetPort: 3000
