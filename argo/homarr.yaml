@@ -8,8 +8,8 @@ metadata:
 spec:
   project: default
   sources:
-    - chart: homarr
-      repoURL: oci://ghcr.io/homarr-labs/charts
+    - path: .
+      repoURL: oci://ghcr.io/homarr-labs/charts/homarr
       targetRevision: "8.18.1"
       helm:
         valueFiles:
