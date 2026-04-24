@@ -9,7 +9,7 @@ ingress:
   enabled: false
 
 service:
-  enabled: false
+  enabled: true
 
 envSecrets:
   dbCredentials:
