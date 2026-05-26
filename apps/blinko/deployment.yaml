@@ -37,7 +37,7 @@ spec:
                   key: NEXTAUTH_SECRET
           volumeMounts:
             - name: blinko-storage
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/.blinko
           resources:
             requests:
               memory: "1Gi"
