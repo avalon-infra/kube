@@ -14,7 +14,7 @@ spec:
   entryPoints:
     - websecure
   tls:
-    secretName: tls-certificate
+    secretName: vault-tls
   routes:
     - match: Host(`vault.matiix310.dev`)
       kind: Rule

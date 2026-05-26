@@ -1,0 +1,11 @@
+kind: Certificate
+metadata:
+  name: vault-tls
+spec:
+  secretName: vault-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: vault.matiix310.dev
+  dnsNames:
+    - "vault.matiix310.dev"
