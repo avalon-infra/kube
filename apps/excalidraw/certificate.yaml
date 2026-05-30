@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: draw-tls
+spec:
+  secretName: draw-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: draw.matiix310.dev
+  dnsNames:
+    - "draw.matiix310.dev"

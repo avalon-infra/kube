@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: draw-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: draw-tls
+  routes:
+    - match: Host(`draw.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: excalidraw
+          port: 5000
