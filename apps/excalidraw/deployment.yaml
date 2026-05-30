@@ -14,9 +14,9 @@ spec:
     spec:
       containers:
         - name: excalidraw
-          image: excalidraw/excalidraw:sha-4bfc5bb
+          image: excalidraw/excalidraw:latest
           ports:
-            - containerPort: 5000
+            - containerPort: 80
               name: http
           resources:
             requests:

@@ -12,4 +12,4 @@ spec:
       kind: Rule
       services:
         - name: excalidraw
-          port: 5000
+          port: 80
