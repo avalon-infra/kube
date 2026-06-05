@@ -10,7 +10,7 @@ spec:
   sources:
     - path: .
       repoURL: oci://ghcr.io/homarr-labs/charts/homarr
-      targetRevision: "8.18.1"
+      targetRevision: "8.19.0"
       helm:
         valueFiles:
           - "$values/apps/homarr/values.yaml"
