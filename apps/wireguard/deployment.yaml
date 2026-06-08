@@ -1,69 +1,109 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wireguard-ui
+  name: wg-easy
   labels:
-    app: wireguard-ui
+    app: wg-easy
 spec:
   replicas: 1
+  # Recreate so we never have two pods both trying to manage wg0
+  # at the same time during a rollout.
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
-      app: wireguard-ui
+      app: wg-easy
   template:
     metadata:
       labels:
-        app: wireguard-ui
+        app: wg-easy
     spec:
+      # wg-easy creates and manages the wg0 interface directly on the
+      # host's network namespace, so it owns the WireGuard server.
+      hostNetwork: true
       containers:
-        - name: wireguard-ui
-          # Pin a specific version. Check https://github.com/ngoduykhanh/wireguard-ui/releases
-          image: ghcr.io/ngoduykhanh/wireguard-ui:v0.6.2
+        - name: wg-easy
+          # Pin a version: see https://github.com/wg-easy/wg-easy/releases
+          image: ghcr.io/wg-easy/wg-easy:15
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 5000
+            - containerPort: 51820
+              protocol: UDP
+              name: wireguard
+            - containerPort: 51821
+              protocol: TCP
               name: ui
           env:
-            - name: WGUI_USERNAME
+            # --- Runtime env vars (read on every start) ---
+            - name: PORT
+              value: "51821"
+            - name: LANG
+              value: en_US.UTF-8
+            # Don't phone home to check for new versions.
+            - name: DISABLE_VERSION_CHECK
+              value: "true"
+
+            # --- First-start setup (read ONCE, only on a fresh database) ---
+            # The INIT_* family drives the setup wizard. After the first
+            # start, the values are written to the wg-easy SQLite db
+            # under /etc/wireguard and the env vars are ignored. To
+            # change them later, do it in the UI (or wipe the db and let
+            # the wizard run again).
+            - name: INIT_ENABLED
+              value: "true"
+            - name: INIT_USERNAME
               value: admin
-            - name: WGUI_PASSWORD
+            - name: INIT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: wireguard-ui-credentials
+                  name: wg-easy-credentials
                   key: password
-            # The host runs wg-quick@wg0; the UI must NOT also try to manage
-            # the interface, otherwise the wgui-reload.path unit on the host
-            # will fight with the UI's own start/stop calls.
-            - name: WGUI_MANAGE_START_WG
-              value: "false"
-            - name: WGUI_CONFIG_FILE_PATH
-              value: /etc/wireguard/wg0.conf
+            # Public hostname clients use to reach the WireGuard server
+            # (must resolve to the VPS public IP via DNS).
+            - name: INIT_HOST
+              value: wg.matiix310.dev
+            # Public UDP port the WireGuard server listens on.
+            - name: INIT_PORT
+              value: "51820"
+            # Server gets 10.8.0.1, clients get 10.8.0.2, .3, ...
+            - name: INIT_IPV4_CIDR
+              value: 10.8.0.0/24
+            # Closed network: clients only route 10.8.0.0/24 through
+            # the tunnel. nftables does the actual enforcement.
+            - name: INIT_ALLOWED_IPS
+              value: 10.8.0.0/24
+            # Leave DNS empty — split tunnel, peers use their own DNS.
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
           volumeMounts:
-            - name: wg-config
+            # wg-easy persists its SQLite db and wg0.conf here. The
+            # host's /etc/wireguard is the only place on the host that
+            # knows about WireGuard now.
+            - name: config
               mountPath: /etc/wireguard
           livenessProbe:
             httpGet:
               path: /
-              port: 5000
-            initialDelaySeconds: 10
+              port: 51821
+            initialDelaySeconds: 30
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /
-              port: 5000
-            initialDelaySeconds: 5
+              port: 51821
+            initialDelaySeconds: 10
             periodSeconds: 10
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "50m"
-            limits:
               memory: "128Mi"
-              cpu: "200m"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
       volumes:
-        - name: wg-config
-          # Single source of truth for the WireGuard config: the host's
-          # /etc/wireguard. The host's wg-quick@wg0 reads from here and the
-          # wgui-reload.path unit reapplies changes on save.
+        - name: config
           hostPath:
             path: /etc/wireguard
             type: DirectoryOrCreate

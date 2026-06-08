@@ -95,7 +95,8 @@ table inet filter {
 
         # k3s ingress traffic is FORWARDed (DNAT'd by kube-proxy from the
         # public IP to a pod IP), so the policy must be accept. We only
-        # drop traffic that originated on wg0 — the closed network.
+        # restrict traffic that originated on wg0.
+        iifname "wg0" oifname "wg0" accept comment "wireguard-peer-to-peer"
         iifname "wg0" drop comment "wireguard-closed-forward"
     }
 
