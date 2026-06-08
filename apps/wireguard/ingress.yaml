@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: wireguard-ui-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: wireguard-ui-tls
+  routes:
+    - match: Host(`wg.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: wireguard-ui
+          port: 80

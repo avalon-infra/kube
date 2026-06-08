@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wireguard-ui-tls
+spec:
+  secretName: wireguard-ui-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: wg.matiix310.dev
+  dnsNames:
+    - "wg.matiix310.dev"
