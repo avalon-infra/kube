@@ -302,7 +302,16 @@ password is now in the SQLite database, not the env var. Change it
 in the UI, or wipe the database to force a re-init from the
 `INIT_PASSWORD` Vault secret.
 
-**`modprobe: FATAL: Module ip6_tables not found in directory
+**Browser shows Traefik "service port not found: 51821" when hitting
+`wg.matiix310.dev`, but `kubectl port-forward deploy/wg-easy 51821`
+works.** Traefik's k8s provider isn't resolving the
+`port: 80 → targetPort: 51821` indirection in the Service cleanly.
+Fix: make the Service's `port` equal the pod's port (51821) and
+update the IngressRoute to use the same. The Service file in this
+repo is already set up that way — if you've customised it back to
+port 80, restore the change.
+
+**`modprobe: FATAL: Module ip6_tables not found in directory**
 /lib/modules/<version>`.** Two possible causes:
 
 1. The deployment is missing the `/lib/modules` hostPath mount or
