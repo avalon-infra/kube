@@ -54,9 +54,12 @@ have only the IngressRoute live in k8s.
 
 ## Prerequisites
 
-- Debian 12+ (k3s host). WireGuard is in the mainline kernel — no DKMS,
+- Linux (k3s host). WireGuard is in the mainline kernel — no DKMS,
   but the kernel module must be available (it is on every default k3s
-  install image).
+  install image). The script and deployment expect a standard
+  `/lib/modules` tree for `modprobe`; cloud-provider kernels sometimes
+  ship minimal — see the `DISABLE_IPV6` note in
+  `apps/wireguard/deployment.yaml` if `modprobe ip6_tables` fails.
 - DNS record for `wg.matiix310.dev` → VPS public IP.
 - Vault reachable; the `vault-secrets-operator` already deployed in
   the cluster.
@@ -298,6 +301,27 @@ next start. Re-add all clients in the UI afterwards.
 password is now in the SQLite database, not the env var. Change it
 in the UI, or wipe the database to force a re-init from the
 `INIT_PASSWORD` Vault secret.
+
+**`modprobe: FATAL: Module ip6_tables not found in directory
+/lib/modules/<version>`.** Two possible causes:
+
+1. The deployment is missing the `/lib/modules` hostPath mount or
+   the `SYS_MODULE` capability. Both are required so `modprobe`
+   inside the container can find and load the host's kernel modules.
+   Compare against the official `docker-compose.yml`:
+   https://github.com/wg-easy/wg-easy/blob/master/docker-compose.yml
+2. The host's kernel genuinely doesn't include `ip6_tables`. Some
+   cloud-provider kernels ship without it. Set `DISABLE_IPV6=true`
+   in `apps/wireguard/deployment.yaml` to skip the IPv6 firewall
+   setup entirely. (You almost certainly don't need IPv6 for a
+   personal phone+laptop VPN.)
+
+**`[unhandledRejection] Error: Command failed: wg-quick up wg0`.**
+Almost always a downstream effect of the `modprobe` failure above.
+Once the modules are reachable, this clears up. If it persists
+after fixing modprobe, share the full output of
+`kubectl -n wireguard logs deploy/wg-easy` and the contents of
+`/etc/wireguard/wg0.conf` on the host.
 
 **Peer can ping the server's wg0 IP (10.8.0.1).** The
 `iifname "wg0" drop` rule on `input` is missing. Check with

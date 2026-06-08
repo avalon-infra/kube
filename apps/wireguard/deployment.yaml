@@ -42,6 +42,11 @@ spec:
             # Don't phone home to check for new versions.
             - name: DISABLE_VERSION_CHECK
               value: "true"
+            # Don't try to set up IPv6 firewall rules — we don't need
+            # IPv6 in the tunnel for a personal phone+laptop VPN, and
+            # some cloud-provider kernels ship without ip6_tables.
+            - name: DISABLE_IPV6
+              value: "true"
 
             # --- First-start setup (read ONCE, only on a fresh database) ---
             # The INIT_* family drives the setup wizard. After the first
@@ -77,12 +82,21 @@ spec:
             capabilities:
               add:
                 - NET_ADMIN
+                # Needed for `modprobe` to load kernel modules
+                # (e.g. ip6_tables if you ever re-enable IPv6).
+                - SYS_MODULE
           volumeMounts:
             # wg-easy persists its SQLite db and wg0.conf here. The
             # host's /etc/wireguard is the only place on the host that
             # knows about WireGuard now.
             - name: config
               mountPath: /etc/wireguard
+            # Bind-mount the host's kernel modules so `modprobe` inside
+            # the container can find them. Matches the official
+            # docker-compose.yml.
+            - name: lib-modules
+              mountPath: /lib/modules
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /
@@ -107,3 +121,7 @@ spec:
           hostPath:
             path: /etc/wireguard
             type: DirectoryOrCreate
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+            type: Directory
