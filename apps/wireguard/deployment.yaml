@@ -18,6 +18,9 @@ spec:
       labels:
         app: wg-easy
     spec:
+      # wg-easy creates and manages the wg0 interface directly on the
+      # host's network namespace, so it owns the WireGuard server.
+      hostNetwork: true
       containers:
         - name: wg-easy
           # Pin a version: see https://github.com/wg-easy/wg-easy/releases
