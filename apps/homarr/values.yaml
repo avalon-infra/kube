@@ -1,3 +1,6 @@
+image:
+  tag: "v1.65.0"
+
 persistence:
   homarrDatabase:
     enabled: false
