@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: blinko
-          image: blinkospace/blinko:1.8.7
+          image: blinkospace/blinko:1.8.8
           ports:
             - containerPort: 1111
               name: http
@@ -37,7 +37,7 @@ spec:
                   key: NEXTAUTH_SECRET
           volumeMounts:
             - name: blinko-storage
-              mountPath: /var/.blinko
+              mountPath: /app/.blinko
           resources:
             requests:
               memory: "1Gi"
