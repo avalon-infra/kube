@@ -7,13 +7,17 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    chart: datadog-operator
-    repoURL: https://helm.datadoghq.com
-    targetRevision: 2.24.0
-    helm:
-      valueFiles:
-        - "$values/apps/datadog-operator/values.yaml"
+  sources:
+    - chart: datadog-operator
+      repoURL: https://helm.datadoghq.com
+      targetRevision: 2.24.0
+      helm:
+        valueFiles:
+          - "$values/apps/datadog-operator/values.yaml"
+    - repoURL: https://github.com/avalon-infra/kube.git
+      targetRevision: HEAD
+      path: apps/datadog-operator
+      ref: values
   destination:
     name: in-cluster
     namespace: datatog-operator
