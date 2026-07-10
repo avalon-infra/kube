@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tino
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tino
+  template:
+    metadata:
+      labels:
+        app: tino
+    spec:
+      containers:
+        - name: tino
+          image: ghcr.io/confirm/tino:1.20
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: TINO_BASE_URL
+              value: "https://tino.matiix310.dev"
+            - name: TINO_OIDC_DISCOVERY_URL
+              value: "https://auth.matiix310.dev/application/o/tino/.well-known/openid-configuration"
+            - name: TINO_OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: tino-env
+                  key: OIDC_CLIENT_ID
+            - name: TINO_OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: tino-env
+                  key: OIDC_CLIENT_SECRET
+          volumeMounts:
+            - name: tino-storage
+              mountPath: /data
+          resources:
+            requests:
+              memory: "126Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "1000m"
+      volumes:
+        - name: tino-storage
+          persistentVolumeClaim:
+            claimName: tino-storage
