@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datatog-operator
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    chart: datadog-operator
+    repoURL: https://helm.datadoghq.com
+    targetRevision: 2.24.0
+    helm:
+      valueFiles:
+        - "$values/apps/datadog-operator/values.yaml"
+  destination:
+    name: in-cluster
+    namespace: datatog-operator
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
