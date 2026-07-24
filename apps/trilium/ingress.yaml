@@ -11,5 +11,5 @@ spec:
     - match: Host(`wiki.matiix310.dev`)
       kind: Rule
       services:
-        - identifier: main
+        - name: trilium
           port: 8080
