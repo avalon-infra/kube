@@ -4,7 +4,7 @@ controllers:
       trilium:
         env:
           TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://wiki.matiix310.dev"
-          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERBASEURL: "https://auth.matiix310.dev"
+          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERBASEURL: "https://auth.matiix310.dev/application/o/trilium/"
           TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "Authentik"
 
         envFrom:
