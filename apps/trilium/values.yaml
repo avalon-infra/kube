@@ -3,7 +3,10 @@ controllers:
     containers:
       trilium:
         env:
-          TRILIUM_OAUTH_BASE_URL: "https://wiki.matiix310.dev"
+          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://wiki.matiix310.dev"
+          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERBASEURL: "https://auth.matiix310.dev"
+          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "Authentik"
+
         envFrom:
           - secret: trilium-oidc-secret
 
