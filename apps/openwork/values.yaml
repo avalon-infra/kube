@@ -33,7 +33,7 @@ config:
     corsOrigins: https://openwork.matiix310.dev,https://openwork-api.matiix310.dev
     betterAuthTrustedOrigins: https://openwork.matiix310.dev
     webAppHosts: openwork.matiix310.dev
-    bootstrapAdminEmails: ""
+    bootstrapAdminEmails: "lucas.stephan.12@outlook.fr"
     installLinksGatingEnabled: "false"
     connectLinkMode: exchange
     connectLinkKeyId: ""
