@@ -43,8 +43,8 @@ config:
     installerReleaseRepo: ""
     authCallbackUrl: https://openwork.matiix310.dev
   internal:
-    apiBaseUrl: "openwork-openwork-ee-den-api:8788"
-    authFallbackBaseUrl: "openwork-openwork-ee-den-api:8788"
+    apiBaseUrl: "http://openwork-openwork-ee-den-api:8788"
+    authFallbackBaseUrl: "http://openwork-openwork-ee-den-api:8788"
     inferenceProxyBaseUrl: ""
   provisioner:
     mode: stub
