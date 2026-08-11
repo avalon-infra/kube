@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: openwork-tls
+spec:
+  secretName: openwork-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: openwork.matiix310.dev
+  dnsNames:
+    - "openwork.matiix310.dev"
+    - "api.openwork.matiix310.dev"

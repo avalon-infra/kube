@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: openwork
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: openwork-ee
+      repoURL: oci://ghcr.io/different-ai/charts/openwork-ee
+      targetRevision: 0.18.18
+      helm:
+        valueFiles:
+          - "$values/apps/openwork/values.yaml"
+    - repoURL: https://github.com/avalon-infra/kube.git
+      targetRevision: HEAD
+      path: apps/openwork
+      ref: values
+  destination:
+    name: in-cluster
+    namespace: openwork
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+    automated:
+      selfHeal: true
+      prune: true

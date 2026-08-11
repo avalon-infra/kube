@@ -1,0 +1,20 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: openwork-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: openwork-tls
+  routes:
+    - match: Host(`openwork.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: openwork-ee-den-web
+          port: http
+    - match: Host(`api.openwork.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: openwork-ee-den-api
+          port: http
