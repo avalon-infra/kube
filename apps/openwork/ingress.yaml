@@ -11,10 +11,10 @@ spec:
     - match: Host(`openwork.matiix310.dev`)
       kind: Rule
       services:
-        - name: openwork-ee-den-web
+        - name: openwork-openwork-ee-den-web
           port: http
     - match: Host(`api.openwork.matiix310.dev`)
       kind: Rule
       services:
-        - name: openwork-ee-den-api
+        - name: openwork-openwork-ee-den-api
           port: http
