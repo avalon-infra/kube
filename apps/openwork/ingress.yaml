@@ -13,7 +13,7 @@ spec:
       services:
         - name: openwork-openwork-ee-den-web
           port: http
-    - match: Host(`api.openwork.matiix310.dev`)
+    - match: Host(`openwork-api.matiix310.dev`)
       kind: Rule
       services:
         - name: openwork-openwork-ee-den-api
