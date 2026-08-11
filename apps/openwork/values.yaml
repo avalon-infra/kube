@@ -13,7 +13,7 @@ config:
     singleOrgName: OpenWork
     singleOrgSlug: default
     ownerEmails: "lucas.stephan.12@outlook.fr"
-    allowPublicSignup: "false"
+    allowPublicSignup: "true"
     requireEmailVerification: "false"
   auth:
     passwordBreachScreeningEnabled: "false"
