@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: authentik-db-migration
+  namespace: authentik
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: postgres:18
+          env:
+            - name: OLD_PGHOST
+              value: postgres.authentik.svc.cluster.local
+            - name: OLD_PGUSER
+              value: authentik
+            - name: OLD_PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: authentik-postgres-credentials
+                  key: password
+            - name: NEW_PGHOST
+              value: pg-cluster-rw.postgres.svc.cluster.local
+            - name: NEW_PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: authentik-app
+                  key: username
+            - name: NEW_PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: authentik-app
+                  key: password
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              echo "Waiting for CNPG cluster..."
+              until pg_isready -h "$NEW_PGHOST" -U "$NEW_PGUSER"; do sleep 2; done
+
+              echo "Dumping from old postgres..."
+              pg_dump -h "$OLD_PGHOST" -U "$OLD_PGUSER" -d authentik \
+                --no-owner --no-privileges \
+                > /tmp/authentik.sql
+
+              echo "Restoring to CNPG cluster..."
+              psql -h "$NEW_PGHOST" -U "$NEW_PGUSER" -d authentik \
+                -v ON_ERROR_STOP=1 < /tmp/authentik.sql
+
+              echo "Done."
