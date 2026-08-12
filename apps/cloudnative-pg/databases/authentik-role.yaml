@@ -3,6 +3,8 @@ kind: DatabaseRole
 metadata:
   name: authentik
 spec:
+  cluster:
+    name: pg-cluster
   name: authentik
   ensure: present
   login: true
