@@ -9,10 +9,7 @@ spec:
   instances: 1
   primaryUpdateMethod: restart
 
-  postgresqlVersion: "18"
-
   imageName: ghcr.io/cloudnative-pg/postgresql:18
-  imagePullPolicy: IfNotPresent
 
   storage:
     size: 50Gi
