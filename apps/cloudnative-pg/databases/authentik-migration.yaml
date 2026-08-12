@@ -15,7 +15,10 @@ spec:
             - name: OLD_PGHOST
               value: postgres.authentik.svc.cluster.local
             - name: OLD_PGUSER
-              value: authentik
+              valueFrom:
+                secretKeyRef:
+                  name: authentik-postgres-credentials
+                  key: username
             - name: OLD_PGPASSWORD
               valueFrom:
                 secretKeyRef:
@@ -26,12 +29,12 @@ spec:
             - name: NEW_PGUSER
               valueFrom:
                 secretKeyRef:
-                  name: authentik-app
+                  name: authentik-pg
                   key: username
             - name: NEW_PGPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: authentik-app
+                  name: authentik-pg
                   key: password
           command:
             - /bin/sh

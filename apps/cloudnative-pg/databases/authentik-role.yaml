@@ -1,0 +1,12 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: authentik
+  namespace: authentik
+spec:
+  name: authentik
+  ensure: present
+  login: true
+  passwordSecret:
+    name: authentik-pg
+  comment: Application role for authentik
