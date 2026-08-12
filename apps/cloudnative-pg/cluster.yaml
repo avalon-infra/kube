@@ -2,40 +2,10 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: pg-cluster
-  namespace: postgres
-  labels:
-    app.kubernetes.io/name: pg-cluster
 spec:
   instances: 1
-  primaryUpdateMethod: restart
 
   imageName: ghcr.io/cloudnative-pg/postgresql:18
 
   storage:
-    size: 50Gi
-    storageClassName: local-path
-    accessModes:
-      - ReadWriteOnce
-    pvcTemplate:
-      accessModes:
-        - ReadWriteOnce
-      storageClassName: local-path
-      resources:
-        requests:
-          storage: 50Gi
-
-  resources:
-    requests:
-      cpu: 250m
-      memory: 512Mi
-    limits:
-      cpu: "1"
-      memory: 1Gi
-
-  enableSuperuserAccess: false
-
-  monitoring:
-    enablePodMonitor: false
-
-  affinity:
-    enablePodAntiAffinity: false
+    size: 30Gi
