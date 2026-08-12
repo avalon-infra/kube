@@ -1,0 +1,11 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: blinko
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  name: blinko
+  owner: blinko
+  cluster:
+    name: pg-cluster

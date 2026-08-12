@@ -8,4 +8,5 @@ resources:
   - ingress.yaml
   - pvc.yaml
   - secret.yaml
+  - secret-pg.yaml
   - service.yaml

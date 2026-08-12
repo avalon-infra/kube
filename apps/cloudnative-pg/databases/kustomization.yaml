@@ -5,3 +5,6 @@ resources:
   - authentik-role.yaml
   - authentik-pg-secret.yaml
   - authentik-database.yaml
+  - blinko-role.yaml
+  - blinko-pg-secret.yaml
+  - blinko-database.yaml

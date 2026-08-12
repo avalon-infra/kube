@@ -1,0 +1,13 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: blinko
+spec:
+  cluster:
+    name: pg-cluster
+  name: blinko
+  ensure: present
+  login: true
+  passwordSecret:
+    name: blinko-pg
+  comment: Application role for blinko
