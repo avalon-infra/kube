@@ -8,3 +8,6 @@ resources:
   - blinko-role.yaml
   - blinko-pg-secret.yaml
   - blinko-database.yaml
+  - homarr-role.yaml
+  - homarr-pg-secret.yaml
+  - homarr-database.yaml

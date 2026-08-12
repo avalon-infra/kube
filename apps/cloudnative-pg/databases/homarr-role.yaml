@@ -1,0 +1,13 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: homarr
+spec:
+  cluster:
+    name: pg-cluster
+  name: homarr
+  ensure: present
+  login: true
+  passwordSecret:
+    name: homarr-pg
+  comment: Application role for homarr

@@ -1,0 +1,11 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: homarr
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  name: homarr
+  owner: homarr
+  cluster:
+    name: pg-cluster

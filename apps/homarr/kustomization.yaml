@@ -7,3 +7,4 @@ resources:
   - ingress.yaml
   - secret-database.yaml
   - secret-oidc.yaml
+  - secret-pg.yaml

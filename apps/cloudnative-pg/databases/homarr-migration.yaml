@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: homarr-db-migration
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: postgres:18
+          env:
+            - name: OLD_PGHOST
+              value: postgres.homarr.svc.cluster.local
+            - name: NEW_PGHOST
+              value: pg-cluster-rw.postgres.svc.cluster.local
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: homarr-pg
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homarr-pg
+                  key: password
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              echo "Waiting for CNPG cluster..."
+              until pg_isready -h "$NEW_PGHOST" -U "$PGUSER"; do sleep 2; done
+
+              echo "Dumping from old postgres..."
+              pg_dump -h "$OLD_PGHOST" -U "$PGUSER" -d homarr \
+                --no-owner --no-privileges --clean --if-exists \
+                > /tmp/homarr.sql
+
+              echo "Restoring to CNPG cluster..."
+              psql -h "$NEW_PGHOST" -U "$PGUSER" -d homarr \
+                -v ON_ERROR_STOP=1 < /tmp/homarr.sql
+
+              echo "Done."
