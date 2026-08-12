@@ -36,7 +36,7 @@ spec:
 
               echo "Dumping from old postgres..."
               pg_dump -h "$OLD_PGHOST" -U "$PGUSER" -d authentik \
-                --no-owner --no-privileges \
+                --no-owner --no-privileges --clean --if-exists \
                 > /tmp/authentik.sql
 
               echo "Restoring to CNPG cluster..."

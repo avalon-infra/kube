@@ -1,7 +1,7 @@
 authentik:
   postgresql:
     host: pg-cluster-rw.postgres.svc.cluster.local
-    user: authentik
+    user: file:///postgres-creds/username
     password: file:///postgres-creds/password
     name: authentik
     port: 5432
@@ -18,7 +18,10 @@ global:
     - name: AUTHENTIK_POSTGRESQL__NAME
       value: "authentik"
     - name: AUTHENTIK_POSTGRESQL__USER
-      value: "authentik"
+      valueFrom:
+        secretKeyRef:
+          name: authentik-pg
+          key: username
     - name: AUTHENTIK_POSTGRESQL__PASSWORD
       valueFrom:
         secretKeyRef:
@@ -30,7 +33,10 @@ global:
           name: authentik-pg
           key: password
     - name: POSTGRES_USER
-      value: "authentik"
+      valueFrom:
+        secretKeyRef:
+          name: authentik-pg
+          key: username
 
 postgresql:
   enabled: false
