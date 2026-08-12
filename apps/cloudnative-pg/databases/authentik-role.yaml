@@ -4,6 +4,8 @@ metadata:
   name: authentik
   namespace: authentik
 spec:
+  cluster:
+    name: pg-cluster
   name: authentik
   ensure: present
   login: true
