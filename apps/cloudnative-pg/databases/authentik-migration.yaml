@@ -2,7 +2,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: authentik-db-migration
-  namespace: authentik
 spec:
   ttlSecondsAfterFinished: 3600
   template:
@@ -45,12 +44,14 @@ spec:
               until pg_isready -h "$NEW_PGHOST" -U "$NEW_PGUSER"; do sleep 2; done
 
               echo "Dumping from old postgres..."
-              pg_dump -h "$OLD_PGHOST" -U "$OLD_PGUSER" -d authentik \
+              PGPASSWORD="$OLD_PGPASSWORD" pg_dump \
+                -h "$OLD_PGHOST" -U "$OLD_PGUSER" -d authentik \
                 --no-owner --no-privileges \
                 > /tmp/authentik.sql
 
               echo "Restoring to CNPG cluster..."
-              psql -h "$NEW_PGHOST" -U "$NEW_PGUSER" -d authentik \
+              PGPASSWORD="$NEW_PGPASSWORD" psql \
+                -h "$NEW_PGHOST" -U "$NEW_PGUSER" -d authentik \
                 -v ON_ERROR_STOP=1 < /tmp/authentik.sql
 
               echo "Done."
