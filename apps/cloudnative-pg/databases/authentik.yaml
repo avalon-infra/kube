@@ -8,4 +8,3 @@ spec:
   owner: authentik
   cluster:
     name: pg-cluster
-  secretName: authentik-app
