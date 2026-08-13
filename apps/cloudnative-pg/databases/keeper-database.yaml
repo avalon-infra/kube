@@ -1,0 +1,11 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: keeper
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  name: keeper
+  owner: keeper
+  cluster:
+    name: pg-cluster

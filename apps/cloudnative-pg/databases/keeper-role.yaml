@@ -1,0 +1,13 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: DatabaseRole
+metadata:
+  name: keeper
+spec:
+  cluster:
+    name: pg-cluster
+  name: keeper
+  ensure: present
+  login: true
+  passwordSecret:
+    name: keeper-pg
+  comment: Application role for keeper

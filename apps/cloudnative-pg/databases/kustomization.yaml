@@ -11,3 +11,6 @@ resources:
   - homarr-role.yaml
   - homarr-pg-secret.yaml
   - homarr-database.yaml
+  - keeper-role.yaml
+  - keeper-pg-secret.yaml
+  - keeper-database.yaml
