@@ -27,12 +27,6 @@ spec:
                 name: keeper-env
             - secretRef:
                 name: keeper-pg
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            readOnlyRootFilesystem: true
           resources:
             requests:
               memory: "64Mi"

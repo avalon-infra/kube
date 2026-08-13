@@ -13,13 +13,11 @@ spec:
       labels:
         app: keeper-redis
     spec:
-      securityContext:
-        runAsUser: 999
-        runAsGroup: 1000
-        fsGroup: 1000
       containers:
         - name: redis
           image: redis:7-alpine
+          stdin: true
+          tty: true
           command:
             - /bin/sh
             - -c
@@ -43,11 +41,6 @@ spec:
             limits:
               memory: "256Mi"
               cpu: "500m"
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
           volumeMounts:
             - name: data
               mountPath: /data

@@ -27,12 +27,6 @@ spec:
               value: http://keeper-mcp.keeper.svc.cluster.local:3002
             - name: PORT
               value: "3000"
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            readOnlyRootFilesystem: true
           resources:
             requests:
               memory: "64Mi"
