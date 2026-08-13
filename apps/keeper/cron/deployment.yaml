@@ -15,6 +15,8 @@ spec:
       containers:
         - name: keeper-cron
           image: ghcr.io/ridafkih/keeper-cron:2.14.9
+          stdin: true
+          tty: true
           env:
             - name: WORKER_JOB_QUEUE_ENABLED
               value: "true"
@@ -33,8 +35,8 @@ spec:
             readOnlyRootFilesystem: true
           resources:
             requests:
-              memory: "32Mi"
-              cpu: "25m"
+              memory: "64Mi"
+              cpu: "50m"
             limits:
-              memory: "128Mi"
-              cpu: "250m"
+              memory: "256Mi"
+              cpu: "500m"
