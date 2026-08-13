@@ -29,8 +29,8 @@ spec:
                 name: keeper-pg
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "50m"
-            limits:
               memory: "256Mi"
-              cpu: "500m"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
