@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keeper-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keeper-api
+  template:
+    metadata:
+      labels:
+        app: keeper-api
+    spec:
+      containers:
+        - name: keeper-api
+          image: ghcr.io/ridafkih/keeper-api:2.14.9
+          ports:
+            - containerPort: 3001
+              name: http
+          env:
+            - name: API_PORT
+              value: "3001"
+            - name: DATABASE_URL
+              value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@pg-cluster-rw.postgres.svc.cluster.local:5432/keeper
+            - name: REDIS_URL
+              value: redis://:$(REDIS_PASSWORD)@keeper-redis.keeper.svc.cluster.local:6379
+            - name: BETTER_AUTH_URL
+              value: https://calendar.matiix310.dev
+            - name: MCP_PUBLIC_URL
+              value: https://calendar.matiix310.dev/mcp
+            - name: MCP_API_URL
+              value: http://keeper-api.keeper.svc.cluster.local:3001
+            - name: BLOCK_PRIVATE_RESOLUTION
+              value: "true"
+            - name: TRUSTED_ORIGINS
+              value: https://calendar.matiix310.dev
+          envFrom:
+            - secretRef:
+                name: keeper-env
+            - secretRef:
+                name: keeper-pg
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"

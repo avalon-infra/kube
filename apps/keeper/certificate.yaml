@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: keeper-tls
+spec:
+  secretName: keeper-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: calendar.matiix310.dev
+  dnsNames:
+    - "calendar.matiix310.dev"

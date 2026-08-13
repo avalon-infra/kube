@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keeper-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keeper-mcp
+  template:
+    metadata:
+      labels:
+        app: keeper-mcp
+    spec:
+      containers:
+        - name: keeper-mcp
+          image: ghcr.io/ridafkih/keeper-mcp:2.14.9
+          ports:
+            - containerPort: 3002
+              name: http
+          env:
+            - name: MCP_PORT
+              value: "3002"
+            - name: MCP_PUBLIC_URL
+              value: https://calendar.matiix310.dev/mcp
+            - name: MCP_API_URL
+              value: http://keeper-api.keeper.svc.cluster.local:3001
+            - name: DATABASE_URL
+              value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@pg-cluster-rw.postgres.svc.cluster.local:5432/keeper
+            - name: BETTER_AUTH_URL
+              value: https://calendar.matiix310.dev
+          envFrom:
+            - secretRef:
+                name: keeper-env
+            - secretRef:
+                name: keeper-pg
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "25m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"

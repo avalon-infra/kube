@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keeper-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keeper-web
+  template:
+    metadata:
+      labels:
+        app: keeper-web
+    spec:
+      containers:
+        - name: keeper-web
+          image: ghcr.io/ridafkih/keeper-web:2.14.9
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: VITE_API_URL
+              value: http://keeper-api.keeper.svc.cluster.local:3001
+            - name: VITE_MCP_URL
+              value: http://keeper-mcp.keeper.svc.cluster.local:3002
+            - name: PORT
+              value: "3000"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
