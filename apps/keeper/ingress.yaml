@@ -27,8 +27,8 @@ spec:
   routes:
     - match: Host(`calendar.matiix310.dev`)
       kind: Rule
-      middlewares:
-        - name: kube-system-authentik-auth@kubernetescrd
+      # middlewares:
+      #   - name: kube-system-authentik-auth@kubernetescrd
       services:
         - name: keeper-web
           port: 3000
