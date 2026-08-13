@@ -29,6 +29,8 @@ spec:
               value: http://keeper-api.keeper.svc.cluster.local:3001
             - name: BLOCK_PRIVATE_RESOLUTION
               value: "true"
+            - name: PRIVATE_RESOLUTION_WHITELIST
+              value: "radicale.radicale.svc.cluster.local"
             - name: TRUSTED_ORIGINS
               value: https://calendar.matiix310.dev
             - name: NODE_ENV
