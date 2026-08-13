@@ -62,7 +62,7 @@ spec:
             volumes:
               - name: userconfig-tls-certificate
                 secret:
-                  secretName: tls-certificate
+                  secretName: vault-tls
 
             volumeMounts:
               - mountPath: /vault/userconfig/tls-certificate
