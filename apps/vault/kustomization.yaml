@@ -4,3 +4,11 @@ kind: Kustomization
 resources:
   - certificate.yaml
   - ingress.yaml
+
+patches:
+  - target:
+      group: apps
+      version: v1
+      kind: StatefulSet
+      name: vault
+    path: statefulset-patch.yaml

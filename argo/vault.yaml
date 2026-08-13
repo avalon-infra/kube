@@ -38,15 +38,14 @@ spec:
                 memory: 4Gi
                 cpu: 500m
 
-            # For HA configuration and because we need to manually init the vault,
-            # we need to define custom readiness/liveness Probe settings
+            # Probes are disabled in the Helm chart and replaced via a kustomize patch
+            # in apps/vault/. The chart's exec probe (vault status) and HTTP probe
+            # (path) fail when sealed because vault status exits non-zero and the
+            # cert SAN doesn't match localhost. We use TCP socket probes instead.
             readinessProbe:
-              enabled: true
-              path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
+              enabled: false
             livenessProbe:
-              enabled: true
-              path: "/v1/sys/health?standbyok=true"
-              initialDelaySeconds: 60
+              enabled: false
 
             # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
             # used to include variables required for auto-unseal.
@@ -99,6 +98,7 @@ spec:
     - repoURL: https://github.com/avalon-infra/kube.git
       path: apps/vault
       targetRevision: HEAD
+      ref: vault
   destination:
     name: in-cluster
     namespace: vault
