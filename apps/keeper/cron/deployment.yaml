@@ -14,14 +14,14 @@ spec:
     spec:
       containers:
         - name: keeper-cron
-          image: ghcr.io/ridafkih/keeper-cron:2.14.9
-          stdin: true
-          tty: true
+          image: ghcr.io/ridafkih/keeper-cron:2.14.0
           env:
             - name: WORKER_JOB_QUEUE_ENABLED
               value: "true"
             - name: BLOCK_PRIVATE_RESOLUTION
               value: "true"
+            - name: NODE_ENV
+              value: PRODUCTION
           envFrom:
             - secretRef:
                 name: keeper-env

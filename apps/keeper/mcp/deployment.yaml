@@ -14,9 +14,7 @@ spec:
     spec:
       containers:
         - name: keeper-mcp
-          image: ghcr.io/ridafkih/keeper-mcp:2.14.9
-          stdin: true
-          tty: true
+          image: ghcr.io/ridafkih/keeper-mcp:2.14.0
           ports:
             - containerPort: 3002
               name: http
@@ -29,6 +27,8 @@ spec:
               value: http://keeper-api.keeper.svc.cluster.local:3001
             - name: BETTER_AUTH_URL
               value: https://calendar.matiix310.dev
+            - name: NODE_ENV
+              value: PRODUCTION
           envFrom:
             - secretRef:
                 name: keeper-env

@@ -14,9 +14,7 @@ spec:
     spec:
       containers:
         - name: keeper-web
-          image: ghcr.io/ridafkih/keeper-web:2.14.9
-          stdin: true
-          tty: true
+          image: ghcr.io/ridafkih/keeper-web:2.14.0
           ports:
             - containerPort: 3000
               name: http
@@ -27,3 +25,5 @@ spec:
               value: http://keeper-mcp.keeper.svc.cluster.local:3002
             - name: PORT
               value: "3000"
+            - name: NODE_ENV
+              value: PRODUCTION
