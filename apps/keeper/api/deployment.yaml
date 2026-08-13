@@ -21,10 +21,6 @@ spec:
           env:
             - name: API_PORT
               value: "3001"
-            - name: DATABASE_URL
-              value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@pg-cluster-rw.postgres.svc.cluster.local:5432/keeper
-            - name: REDIS_URL
-              value: redis://:$(REDIS_PASSWORD)@keeper-redis.keeper.svc.cluster.local:6379
             - name: BETTER_AUTH_URL
               value: https://calendar.matiix310.dev
             - name: MCP_PUBLIC_URL

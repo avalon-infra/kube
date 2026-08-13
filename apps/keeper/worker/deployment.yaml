@@ -16,10 +16,6 @@ spec:
         - name: keeper-worker
           image: ghcr.io/ridafkih/keeper-worker:2.14.9
           env:
-            - name: DATABASE_URL
-              value: postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@pg-cluster-rw.postgres.svc.cluster.local:5432/keeper
-            - name: REDIS_URL
-              value: redis://:$(REDIS_PASSWORD)@keeper-redis.keeper.svc.cluster.local:6379
           envFrom:
             - secretRef:
                 name: keeper-env
