@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: radicale-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: radicale-tls
+  routes:
+    - match: Host(`radicale.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: radicale
+          port: 5232

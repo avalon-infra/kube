@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: radicale-tls
+spec:
+  secretName: radicale-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: radicale.matiix310.dev
+  dnsNames:
+    - "radicale.matiix310.dev"

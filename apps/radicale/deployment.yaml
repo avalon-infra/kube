@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radicale
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: radicale
+  template:
+    metadata:
+      labels:
+        app: radicale
+    spec:
+      securityContext:
+        runAsUser: 2999
+        runAsGroup: 2999
+        fsGroup: 2999
+      initContainers:
+        - name: htpasswd-init
+          image: tomsquest/docker-radicale:3.7.6.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              apk add --no-cache apache2-utils >/dev/null
+              if [ -f /data/users ]; then
+                echo "Users file already exists, skipping"
+                exit 0
+              fi
+              : "${ADMIN_USER:?ADMIN_USER missing from secret}"
+              : "${ADMIN_PASSWORD:?ADMIN_PASSWORD missing from secret}"
+              htpasswd -B -C 12 -b /data/users "$ADMIN_USER" "$ADMIN_PASSWORD"
+              chmod 0640 /data/users
+          envFrom:
+            - secretRef:
+                name: radicale-env
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - CHOWN
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      containers:
+        - name: radicale
+          image: tomsquest/docker-radicale:3.7.6.0
+          command:
+            - /bin/sh
+            - -c
+            - exec /venv/bin/radicale --config /config/config
+          ports:
+            - containerPort: 5232
+              name: http
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - CHOWN
+                - SETUID
+                - SETGID
+                - KILL
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+              readOnly: true
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: radicale-data
+        - name: config
+          configMap:
+            name: radicale-config
