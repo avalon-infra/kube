@@ -51,8 +51,8 @@ spec:
             # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
             # used to include variables required for auto-unseal.
             extraEnvironmentVars:
-              VAULT_TLSCERT: /vault/userconfig/tls-certificate/tls.crt
-              VAULT_TLSKEY: /vault/userconfig/tls-certificate/tls.key
+              VAULT_TLSCERT: /vault/userconfig/vault-tls/tls.crt
+              VAULT_TLSKEY: /vault/userconfig/vault-tls/tls.key
 
             # This configures the Vault Statefulset to create a PVC for audit logs.
             # See https://www.vaultproject.io/docs/audit/index.html to know more
@@ -60,13 +60,13 @@ spec:
               enabled: false
 
             volumes:
-              - name: userconfig-tls-certificate
+              - name: userconfig-vault-tls
                 secret:
                   secretName: vault-tls
 
             volumeMounts:
-              - mountPath: /vault/userconfig/tls-certificate
-                name: userconfig-tls-certificate
+              - mountPath: /vault/userconfig/vault-tls
+                name: userconfig-vault-tls
                 readOnly: true
 
             standalone:
@@ -85,8 +85,8 @@ spec:
                     tls_disable = 0
                     address = "[::]:8200"
                     cluster_address = "[::]:8201"
-                    tls_cert_file = "/vault/userconfig/tls-certificate/tls.crt"
-                    tls_key_file  = "/vault/userconfig/tls-certificate/tls.key"
+                    tls_cert_file = "/vault/userconfig/vault-tls/tls.crt"
+                    tls_key_file  = "/vault/userconfig/vault-tls/tls.key"
                   }
 
                   storage "raft" {
