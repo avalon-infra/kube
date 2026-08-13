@@ -3,8 +3,7 @@ kind: ServersTransport
 metadata:
   name: traefik-vault-transport
 spec:
-  serverName: "vault"
-  insecureSkipVerify: true
+  serverName: vault.matiix310.dev
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
