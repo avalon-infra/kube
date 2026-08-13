@@ -30,7 +30,7 @@ spec:
               fi
               : "${ADMIN_USER:?ADMIN_USER missing from secret}"
               : "${ADMIN_PASSWORD:?ADMIN_PASSWORD missing from secret}"
-              htpasswd -B -C 12 -b /data/users "$ADMIN_USER" "$ADMIN_PASSWORD"
+              htpasswd -c -B -C 12 -b /data/users "$ADMIN_USER" "$ADMIN_PASSWORD"
               chmod 0640 /data/users
           envFrom:
             - secretRef:
