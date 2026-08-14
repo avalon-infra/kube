@@ -1,0 +1,9 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: block-signup
+spec:
+  redirectRegex:
+    regex: ^/api/auth/(sign-in/social|callback/google|callback/microsoft|sign-up/username)/?$
+    replacement: /auth-disabled
+    permanent: false

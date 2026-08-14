@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - certificate.yaml
   - ingress.yaml
+  - middleware-block-signup.yaml
   - secret.yaml
   - secret-pg.yaml
   - redis/statefulset.yaml
