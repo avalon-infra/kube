@@ -4,6 +4,6 @@ metadata:
   name: block-signup
 spec:
   redirectRegex:
-    regex: ^/api/auth/(sign-in/social|callback/google|callback/microsoft|sign-up/username)/?$
+    regex: ^/api/auth/(username-only/sign-up|sign-in/social|callback/google|callback/microsoft)/?$
     replacement: /auth-disabled
     permanent: false
