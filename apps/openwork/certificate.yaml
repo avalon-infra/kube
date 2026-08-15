@@ -10,4 +10,3 @@ spec:
   commonName: openwork.matiix310.dev
   dnsNames:
     - "openwork.matiix310.dev"
-    - "openwork-api.matiix310.dev"
