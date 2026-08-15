@@ -22,15 +22,15 @@ config:
     clientId: ""
   public:
     webOrigin: https://openwork.matiix310.dev
-    apiOrigin: https://openwork.matiix310.dev/api/den
-    mcpResourceUrl: https://openwork.matiix310.dev/api/den/mcp
+    apiOrigin: https://openwork-api.matiix310.dev
+    mcpResourceUrl: https://openwork-api.matiix310.dev/mcp
     mcpAdditionalResources: ""
     # Leave blank to keep External MCP URL SSRF protection enabled.
     # Set "1" only for trusted private-network MCP servers.
     allowPrivateMcpUrls: ""
     mcpClaimNamespace: ""
     desktopDenBaseUrl: https://openwork.matiix310.dev
-    corsOrigins: https://openwork.matiix310.dev
+    corsOrigins: https://openwork.matiix310.dev,https://openwork-api.matiix310.dev
     betterAuthTrustedOrigins: https://openwork.matiix310.dev
     webAppHosts: openwork.matiix310.dev
     bootstrapAdminEmails: "lucas.stephan.12@outlook.fr"
