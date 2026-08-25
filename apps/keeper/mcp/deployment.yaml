@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: keeper-mcp
-          image: ghcr.io/ridafkih/keeper-mcp:2.14.12
+          image: ghcr.io/ridafkih/keeper-mcp:2.23.0
           ports:
             - containerPort: 3002
               name: http
