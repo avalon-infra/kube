@@ -2,7 +2,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 image:
-  tag: 0.18.35
+  tag: 0.18.40
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []

@@ -10,7 +10,7 @@ spec:
   sources:
     - chart: openwork-ee
       repoURL: oci://ghcr.io/different-ai/charts/openwork-ee
-      targetRevision: 0.18.35
+      targetRevision: 0.18.40
       helm:
         valueFiles:
           - "$values/apps/openwork/values.yaml"
