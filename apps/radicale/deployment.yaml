@@ -99,10 +99,10 @@ spec:
           resources:
             requests:
               memory: "64Mi"
-              cpu: "50m"
+              cpu: "500m"
             limits:
               memory: "256Mi"
-              cpu: "500m"
+              cpu: "1000m"
       volumes:
         - name: data
           persistentVolumeClaim:
