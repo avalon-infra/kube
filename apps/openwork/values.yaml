@@ -199,7 +199,8 @@ denWeb:
     loadBalancerClass: ""
     loadBalancerSourceRanges: []
   containerPort: 3005
-  env: {}
+  env:
+    DEN_BASE_URL: https://openwork.matiix310.dev
   podAnnotations: {}
   podLabels: {}
   resources: {}
