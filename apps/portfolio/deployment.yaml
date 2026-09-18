@@ -16,7 +16,7 @@ spec:
         - name: github-dockerconfig
       containers:
         - name: portfolio
-          image: ghcr.io/avalon-infra/portfolio:latest
+          image: ghcr.io/avalon-infra/portfolio:1.0
           ports:
             - name: http
               containerPort: 80
