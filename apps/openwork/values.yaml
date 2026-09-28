@@ -246,7 +246,7 @@ inference:
       failureThreshold: 12
 
 migrations:
-  enabled: false # TODO: enable this
+  enabled: true
   hook: true
   hookDeletePolicy: before-hook-creation,hook-succeeded
   backoffLimit: 2
