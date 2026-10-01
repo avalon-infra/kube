@@ -18,8 +18,8 @@ config:
   auth:
     passwordBreachScreeningEnabled: "false"
   githubConnector:
-    appId: ""
-    clientId: ""
+    appId: "5150390"
+    clientId: "Iv23liKBhQOg8uVVstq8"
   public:
     webOrigin: https://openwork.matiix310.dev
     apiOrigin: https://openwork-api.matiix310.dev
