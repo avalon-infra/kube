@@ -1,0 +1,79 @@
+# Helm values for zekker6/language-tool (https://zekker6.github.io/helm-charts/).
+# This file is consumed by Argo CD via the "$values" reference in argo/language-tool.yaml.
+# Anything you change here will be picked up on the next Argo CD sync.
+#
+# Upstream default values: https://github.com/zekker6/helm-charts/blob/main/charts/apps/language-tool/values.yaml
+# Common library options:    https://github.com/zekker6/helm-charts/blob/main/charts/library/common/values.yaml
+
+image:
+  repository: erikvl87/languagetool
+  pullPolicy: IfNotPresent
+  tag: "6.8"
+
+env:
+  TZ: Europe/Paris
+  # Java heap bumped for n-gram mode (default 1024m is too small).
+  Java_Xms: 2g
+  Java_Xmx: 3g
+  langtool_languageModel: /ngrams
+
+# Traefik IngressRoute is handled cluster-side in apps/language-tool/ingress.yaml,
+# so disable the chart-managed ingress.
+ingress:
+  main:
+    enabled: false
+
+# /ngrams needs to be a real PVC so the downloaded n-gram data (~30 GB peak
+# during init, ~19 GB steady-state) survives pod restarts. Without this the
+# init container would re-download ~11 GB on every pod restart.
+#   EN archive: 8.96 GB compressed -> ~14 GB unpacked
+#   FR archive: 1.82 GB compressed -> ~5  GB unpacked
+persistence:
+  config:
+    enabled: true
+    type: pvc
+    mountPath: /ngrams
+    size: 35Gi
+    accessMode: ReadWriteOnce
+    # No storageClass set -> uses the cluster's default provisioner
+    # (same approach as apps/blinko/pvc.yaml and apps/tino/pvc.yaml).
+
+# Override the chart's initContainer so it actually downloads the EN + FR
+# n-gram archives. Original script is commented out in the upstream chart.
+# LanguageTool auto-detects the right n-gram based on the language being
+# checked at request time, so we just need both folders under /ngrams.
+initContainers:
+  download-ngrams:
+    image: alpine:3
+    command:
+      - sh
+      - -c
+      - |
+        set -ex
+        apk add --no-cache unzip
+        cd /ngrams
+
+        if [ ! -d /ngrams/en ]; then
+          wget https://languagetool.org/download/ngram-data/ngrams-en-20150817.zip -O en.zip
+          unzip -d /ngrams en.zip
+          rm en.zip
+        fi
+
+        if [ ! -d /ngrams/fr ]; then
+          wget https://languagetool.org/download/ngram-data/ngrams-fr-20150913.zip -O fr.zip
+          unzip -d /ngrams fr.zip
+          rm fr.zip
+        fi
+
+        chown -R 100:101 /ngrams
+    volumeMounts:
+      - name: config
+        mountPath: /ngrams
+
+# Memory bumped to back the larger JVM heap. CPU unchanged.
+resources:
+  requests:
+    cpu: 250m
+    memory: 3500Mi
+  limits:
+    memory: 5Gi

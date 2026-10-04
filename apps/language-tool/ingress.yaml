@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: languagetool-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: languagetool-tls
+  routes:
+    - match: Host(`lt.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: language-tool
+          port: 8010
