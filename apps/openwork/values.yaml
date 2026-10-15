@@ -37,6 +37,9 @@ config:
     betterAuthTrustedOrigins: https://openwork.matiix310.dev
     webAppHosts: openwork.matiix310.dev
     bootstrapAdminEmails: "lucas.stephan.12@outlook.fr"
+    automationsEnabled: "true"
+    dashboardsEnabled: "true"
+    openworkWebEnabled: "true"
     installLinksGatingEnabled: "false"
     connectLinkMode: exchange
     connectLinkKeyId: ""
