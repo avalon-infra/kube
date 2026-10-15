@@ -8,6 +8,9 @@ image:
 imagePullSecrets: []
 
 config:
+  features:
+    automationCalendar: "true"
+    implicitCloudSkills: "true"
   tenancy:
     mode: single_org
     singleOrgName: OpenWork
