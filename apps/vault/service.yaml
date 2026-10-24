@@ -1,0 +1,87 @@
+# The Service that exposes Vault's INTERNAL listener (8300).
+#
+# ---------------------------------------------------------------------------
+# WHY THIS FILE OVERRIDES THE CHART'S Service
+# ---------------------------------------------------------------------------
+# Vault has two TLS listeners (see argo/vault.yaml):
+#
+#   8200  tcp   vault-tls           Let's Encrypt (public CA) - the edge
+#   8300  tcp   vault-internal-tls  private CA - the in-cluster identity
+#
+# The chart's `vault` Service only exposes 8200 and 8201: its template
+# hard-codes exactly those two ports and there is no chart value to add a
+# third one. (The chart's `server.extraPorts` value only adds a
+# containerPort to the StatefulSet, never a Service port.)
+#
+# The in-cluster clients dial the Service DNS name
+# `vault.vault.svc.cluster.local`, and CoreDNS resolves that to the
+# Service named `vault` in the `vault` namespace. So the Service that
+# has to carry port 8300 is the one named `vault` - a separate Service
+# would be reachable under a different name only, and the canonical name
+# would keep resolving to a Service that drops the connection.
+#
+# ArgoCD's multi-source Applications resolve that: when two sources
+# produce the same resource (same group/kind/name/namespace), the LAST
+# source wins. The chart is source 0 and this directory is source 1, so
+# this Service replaces the chart's one. ArgoCD logs a
+# RepeatedResourceWarning for it - that is expected, and it is the
+# documented way to override a chart resource from a Git source:
+#
+#   https://argo-cd.readthedocs.io/en/stable/user-guide/multiple_sources/
+#
+# The override is a FULL copy of the chart's Service with one port
+# added. It has to be a full copy: the chart's Service carries the
+# labels, the `publishNotReadyAddresses` behaviour and the selector that
+# the `vault-active` / `vault-standby` Services rely on, and dropping
+# any of those would change the chart's behaviour.
+#
+# To see the chart's own version:
+#
+#   helm template vault hashicorp/vault --version 0.32.0 -f <values>
+#
+# ---------------------------------------------------------------------------
+# THE PORTS
+# ---------------------------------------------------------------------------
+#   8200  https         the public (edge) API, Let's Encrypt certificate
+#   8201  https-internal  the raft cluster port
+#   8300  vault-internal  the in-cluster API, private CA certificate
+#
+# The port NAMES have to be at most 15 characters (Kubernetes
+# IANA_SVC_NAME rule), so "https-internal-api" is not allowed.
+# ---------------------------------------------------------------------------
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  namespace: vault
+  labels:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/instance: vault
+    app.kubernetes.io/managed-by: ArgoCD
+    helm.sh/chart: vault-0.32.0
+  annotations:
+    argocd.argoproj.io/tracking-id: vault:apps/Service:vault/vault
+spec:
+  type: ClusterIP
+  # "We want the servers to become available even if they're not ready
+  # since this DNS is also used for join operations." - chart comment
+  publishNotReadyAddresses: true
+  ports:
+    - name: https
+      port: 8200
+      targetPort: 8200
+      protocol: TCP
+    - name: https-internal
+      port: 8201
+      targetPort: 8201
+      protocol: TCP
+    # The in-cluster listener. This is the port the operator dials.
+    - name: vault-internal
+      port: 8300
+      targetPort: 8300
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: vault
+    app.kubernetes.io/instance: vault
+    component: server
