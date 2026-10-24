@@ -174,11 +174,17 @@ spec:
                   #   - rotating the edge certificate must not be able to
                   #     break secret materialisation.
                   #
+                  # The listener TYPE has to be "tcp" - Vault only accepts
+                  # "tcp" and "unix" (a wrong name fails with
+                  # 'listeners.1: unsupported listener type "tcp-internal"').
+                  # Two listeners of the same type are fine, they are told
+                  # apart by their address.
+                  #
                   # No cluster_address here: 8201 is already the raft cluster
                   # port of the `tcp` listener above, and a raft cluster has
                   # exactly one cluster listener. This listener only serves
                   # API requests.
-                  listener "tcp-internal" {
+                  listener "tcp" {
                     tls_disable = 0
                     address = "[::]:8300"
                     tls_cert_file = "/vault/userconfig/vault-internal-tls/tls.crt"
