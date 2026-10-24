@@ -4,3 +4,6 @@ kind: Kustomization
 resources:
   - clusterissuer.yaml
   - certificate.yaml
+  # The private CA used for in-cluster TLS (Vault's internal listener).
+  # See the file header for the three-step bootstrap pattern.
+  - internal-ca.yaml

@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # The private CA bundle for this namespace, so the operator can verify
+  # Vault's internal certificate. See the file header for how it works
+  # without cert-manager-trust-manager.
+  - certificate-ca.yaml

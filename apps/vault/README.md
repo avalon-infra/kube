@@ -7,9 +7,70 @@ initialisation / manual unsealing**.
 - Namespace: `vault`
 - Replicas: `1` (single raft voter — this is the quorum)
 - Storage: PVC `data-vault-0` (10Gi, `local-path`)
-- TLS: served from the cert-manager secret `vault-tls`
-  (`apps/vault/certificate.yaml`), mounted at `/vault/userconfig/vault-tls`
 - Seal type: `shamir`, `t=1, n=1` — **one** unseal key, threshold **one**
+
+## TLS: two listeners, two identities
+
+Vault serves **two** TLS listeners, each with its own certificate, for
+two different kinds of client:
+
+| Port | Listener | Secret | Issued by | Used by |
+|---|---|---|---|---|
+| 8200 | `tcp` | `vault-tls` | `prod-cluster-issuer` (ACME / Let's Encrypt) | the WireGuard tunnel, Traefik, a browser |
+| 8201 | `tcp` (raft cluster) | `vault-tls` | same | vault cluster traffic (raft) |
+| 8300 | `tcp-internal` | `vault-internal-tls` | `internal-cluster-issuer` (private CA) | in-cluster clients |
+
+- **8200 — the edge identity.** The certificate is issued by the public
+  ACME issuer, so a phone or a laptop on the WireGuard tunnel can verify
+  it against the root CAs it already trusts. The name is
+  `vault.matiix310.dev`.
+- **8300 — the in-cluster identity.** The certificate is issued by the
+  **private CA** in `apps/cert-manager/internal-ca.yaml`. The name is
+  `vault.vault.svc.cluster.local`, which is not publicly resolvable.
+  Only pods that are explicitly given that CA can verify it — today that
+  is `vault-secrets-operator`, via `VAULT_CACERT`.
+
+**Why not just one certificate with both names on it?**
+
+Because the trust anchors have to differ. If the in-cluster name were a
+SAN on the Let's Encrypt certificate, then every pod talking to Vault
+would have to trust the whole public web PKI to verify one private
+service, and a private service identity would depend on a public CA's
+good behaviour. A separate listener keeps the two trust worlds apart:
+the edge keeps its public CA, the cluster gets its own.
+
+**Why not two certificates on one listener?**
+
+Because a TLS server sends one certificate per listener. `tls_cert_file`
+is a single file path.
+
+The listener configuration lives in `argo/vault.yaml` under
+`server.ha.raft.config`.
+
+> **The 8300 listener has no `cluster_address`.** 8201 is already the
+> raft cluster port of the `tcp` listener, and a raft cluster has
+> exactly one cluster listener. The 8300 listener only serves API
+> requests.
+
+### Certificate reload, and why it matters here
+
+Both listeners set `tls_reload_interval = "30s"`. Vault then re-reads
+the certificate from the mounted Secret when its contents change, and
+picks up a rotated certificate **without a restart**.
+
+That is not a nicety here. Restarting the Vault pod **re-seals it**
+(see below), and with `t=1, n=1` somebody has to unseal it by hand
+again. With `tls_reload_interval`, a cert-manager renewal does not
+bounce the pod.
+
+### The Service for 8300
+
+The Helm chart's `vault` Service template hard-codes exactly two ports
+(8200 and 8201) and there is no chart value to add a third one. The
+Service that exposes 8300 is therefore defined in
+`apps/vault/service-internal.yaml` and applied by the same ArgoCD
+Application (`argo/vault.yaml`) that renders the chart — so it is still
+pure GitOps and it is still pruned when it is deleted from the repo.
 
 > **Vault is not auto-unsealed.** There is no auto-unseal mechanism in
 > this cluster: no KMS transit seal, no `vault-operator`, no seal
@@ -111,6 +172,12 @@ covers `vault.matiix310.dev` and `vault.vault.svc.cluster.local`, but
 **not** `127.0.0.1` (no IP SAN). The connection is a loopback to the
 same pod, so verification adds nothing.
 
+> The certificate that covers `vault.vault.svc.cluster.local` is the
+> **internal** one (`vault-internal-tls`, on port 8300). Port 8200 serves
+> `vault-tls`, which covers `vault.matiix310.dev` only. Either way the
+> loopback to `127.0.0.1:8200` is not covered by any of them, so
+> `-tls-skip-verify` is still required.
+
 To avoid leaving the key in your shell history, use the interactive
 prompt instead:
 
@@ -158,6 +225,18 @@ method, which needs Vault to be **unsealed** — a sealed Vault answers
 the login request with `503 Vault is sealed` and the operator exits with
 code 1, which puts it in `CrashLoopBackOff`.
 
+It reaches Vault on the **internal** listener:
+
+```
+VAULT_ADDRESS = https://vault.vault.svc.cluster.local:8300
+VAULT_CACERT  = /etc/vault-secrets-operator/ca.pem
+```
+
+`VAULT_CACERT` points at the private CA bundle in the operator's
+namespace (`apps/vault-secrets-operator/certificate-ca.yaml`). If that
+CA is wrong or missing, the operator fails with an `x509` error and
+cannot materialise anything.
+
 So: **if `vault-secrets-operator` is crash-looping, check whether Vault
 is sealed first.** Its error message says so explicitly:
 
@@ -169,6 +248,25 @@ Note that the operator does **not** delete the Kubernetes Secrets it has
 already materialised when Vault becomes unreachable, so an outage does
 not immediately break the downstream applications. It does, however,
 stop them from being refreshed.
+
+## Files
+
+```
+apps/vault/
+  README.md               <- this file
+  certificate.yaml        <- edge cert (Let's Encrypt), served on 8200
+  certificate-internal.yaml
+                        <- internal cert (private CA), served on 8300
+  service-internal.yaml  <- Service exposing 8300
+  ingress.yaml           <- the public route - DISABLED, see its header
+  kustomization.yaml
+apps/cert-manager/
+  internal-ca.yaml       <- the private CA (selfSigned Issuer -> CA -> ca ClusterIssuer)
+apps/vault-secrets-operator/
+  certificate-ca.yaml    <- the private CA bundle, in the operator's namespace
+argo/vault.yaml                  <- ArgoCD Application (chart + apps/vault)
+argo/vault-secrets-operator.yaml <- ArgoCD Application (chart + apps/vault-secrets-operator)
+```
 
 ## Troubleshooting
 
@@ -208,6 +306,53 @@ Vault copes with it. Harmless.
 **The Vault UI is reachable but every API call returns 503.**
 
 Sealed. Same as above.
+
+**`vault-secrets-operator` fails with an `x509` certificate error.**
+
+The operator verifies Vault's internal certificate against the private
+CA it was given. If the two do not match, the handshake fails:
+
+```
+x509: certificate signed by unknown authority
+x509: certificate is valid for vault.matiix310.dev, not vault.vault.svc.cluster.local
+```
+
+Check which certificate Vault is actually serving on 8300, and which CA
+the operator has:
+
+```sh
+# What Vault serves on the internal listener.
+kubectl -n vault get secret vault-internal-tls \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d \
+  | openssl x509 -noout -issuer -ext subjectAltName
+
+# What the operator trusts.
+kubectl -n vault-secrets-operator-system get secret vault-internal-ca \
+  -o jsonpath='{.data.ca\.crt}' | base64 -d \
+  | openssl x509 -noout -subject
+```
+
+Both have to be the same CA (`CN=avalon internal CA`). If the operator
+still has the OLD CA bundle, cert-manager has not re-issued
+`apps/vault-secrets-operator/certificate-ca.yaml` yet — check
+`kubectl -n vault-secrets-operator-system get certificate`.
+
+**`vault-secrets-operator` fails with `context deadline exceeded`.**
+
+The connection to `vault.vault.svc.cluster.local:8300` hangs. That
+means nothing is listening on 8300 — the internal listener is not up.
+Check:
+
+```sh
+kubectl -n vault get svc vault-internal-api
+kubectl -n vault exec vault-0 -- \
+  wget -qO- --timeout=3 --no-check-certificate \
+  "https://127.0.0.1:8300/v1/sys/health"
+```
+
+If that fails too, the Vault pod has not been rolled with the new
+`server.ha.raft.config` (see `argo/vault.yaml`) — or it came back
+sealed and is waiting to be unsealed.
 
 ## Reference
 

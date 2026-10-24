@@ -1,0 +1,75 @@
+# Internal TLS identity for the Vault API, as seen from inside the cluster.
+#
+# ---------------------------------------------------------------------------
+# WHY A SEPARATE CERTIFICATE FROM apps/vault/certificate.yaml
+# ---------------------------------------------------------------------------
+# `vault-tls` is issued by the public `prod-cluster-issuer` (Let's Encrypt).
+# It is the certificate for the EDGE identity of Vault: `vault.matiix310.dev`
+# and the VPN hostname. A browser, a phone or a laptop that connects over
+# the WireGuard tunnel verifies it against the public root CAs it already
+# trusts, which is exactly what that certificate is for.
+#
+# The in-cluster identity is a different thing:
+#
+#   - `vault.vault.svc.cluster.local` is not a public name and must never
+#     be publicly resolvable.
+#   - In-cluster clients should not have to trust the whole public web PKI
+#     in order to talk to one private service.
+#   - If the edge certificate is rotated or the ACME account is changed,
+#     that should not be able to break secret materialisation.
+#
+# So Vault serves TWO certificates on TWO listeners:
+#
+#   8200  "tcp"          -> vault-tls          (public CA, edge/VPN)
+#   8300  "tcp-internal" -> vault-internal-tls (internal CA, in-cluster)
+#
+# Both are configured in argo/vault.yaml. The operator only ever talks to
+# 8300.
+#
+# ---------------------------------------------------------------------------
+# THE SANs
+# ---------------------------------------------------------------------------
+# `vault.vault.svc.cluster.local` is the name CoreDNS resolves for the
+# `vault` Service in the `vault` namespace. It is what the operator puts
+# in VAULT_ADDRESS, and therefore it is what the certificate has to cover
+# - Go's TLS verification checks the name it dialled against the SANs of
+# the certificate the server presented.
+#
+# `vault.vault.svc` is the short form, for clients that do not expand the
+# cluster search domains.
+#
+# `vault` and `vault.vault` (the bare service name) are NOT included on
+# purpose: they are far more likely to collide with something else, and
+# nothing in this cluster uses them.
+# ---------------------------------------------------------------------------
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vault-internal-tls
+  namespace: vault
+spec:
+  secretName: vault-internal-tls
+  issuerRef:
+    # The ClusterIssuer from apps/cert-manager/internal-ca.yaml.
+    name: internal-cluster-issuer
+    kind: ClusterIssuer
+  commonName: vault.vault.svc.cluster.local
+  dnsNames:
+    - "vault.vault.svc.cluster.local"
+    - "vault.vault.svc"
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  # Short-lived on purpose, and rotated automatically. The private key
+  # never leaves the Secret that cert-manager writes.
+  duration: 2160h    # 90 days
+  renewBefore: 720h   # 30 days
+  # Vault reloads its certificate from the mounted Secret without a
+  # restart, so a renewal does not bounce the Vault pod (and therefore
+  # does not re-seal it - see apps/vault/README.md). The matching
+  # `tls_reload_interval` is set in argo/vault.yaml.
+  secretTemplate:
+    labels:
+      app.kubernetes.io/instance: vault
+      app.kubernetes.io/name: vault
