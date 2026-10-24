@@ -40,13 +40,38 @@ spec:
 
             # For HA configuration and because we need to manually init the vault,
             # we need to define custom readiness/liveness Probe settings
+            #
+            # The liveness probe MUST be sealed-tolerant. Vault answers
+            # /v1/sys/health with 503 while it is sealed (or uninitialised),
+            # which is a normal OPERATIONAL state, not a dead process.
+            #
+            # With the old path ("/v1/sys/health?standbyok=true") the kubelet
+            # killed vault-0 roughly every 70s (initialDelaySeconds: 60 +
+            # 2 x periodSeconds: 5), so the container was restarted before it
+            # could ever be unsealed. Every restart re-sealed it, so the
+            # crash loop was self-sustaining (7375 restarts over 19 days).
+            # It also made manual unsealing impossible: the container died
+            # before "vault operator unseal" could complete.
+            #
+            # "sealedcode=204&uninitcode=204" tells Vault to answer 204 for
+            # those states, so the liveness probe only fails when the HTTP
+            # listener is genuinely gone - which is what liveness means.
+            # The timings are relaxed as well (periodSeconds 15,
+            # timeoutSeconds 5, failureThreshold 6 -> ~2.5 min of tolerance)
+            # so a slow raft recovery does not trip the probe either.
+            #
+            # NOTE: the chart (0.32.0) does not render a startupProbe for the
+            # server StatefulSet, only readinessProbe and livenessProbe.
             readinessProbe:
               enabled: true
               path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
             livenessProbe:
               enabled: true
-              path: "/v1/sys/health?standbyok=true"
+              path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
               initialDelaySeconds: 60
+              periodSeconds: 15
+              timeoutSeconds: 5
+              failureThreshold: 6
 
             # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
             # used to include variables required for auto-unseal.
