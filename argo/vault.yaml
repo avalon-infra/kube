@@ -94,9 +94,13 @@ spec:
             # and offers no value to add a port, so the Service that
             # exposes 8300 is defined in apps/vault/service-internal.yaml
             # and applied by this same ArgoCD Application.
+            #
+            # The port NAME has to be at most 15 characters (Kubernetes
+            # IANA_SVC_NAME rule), so it cannot be
+            # "https-internal-api".
             extraPorts:
               - containerPort: 8300
-                name: https-internal-api
+                name: vault-internal
                 protocol: TCP
 
             volumes:

@@ -55,7 +55,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: https-internal-api
+    # The port NAME has to be at most 15 characters (Kubernetes
+    # IANA_SVC_NAME rule), so it cannot be "https-internal-api". It
+    # matches the containerPort name in argo/vault.yaml.
+    - name: vault-internal
       port: 8300
       targetPort: 8300
       protocol: TCP
