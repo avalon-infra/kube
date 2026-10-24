@@ -9,4 +9,18 @@ spec:
     kind: ClusterIssuer
   commonName: vault.matiix310.dev
   dnsNames:
+    # This is the EDGE identity of Vault: the name the WireGuard tunnel
+    # and Traefik use. It is issued by the public ACME issuer because a
+    # phone or a laptop on the tunnel has to be able to verify it against
+    # the root CAs it already trusts.
+    #
+    # It is NOT the in-cluster identity. That one is
+    # `vault.vault.svc.cluster.local`, served by the internal listener on
+    # port 8300 from the certificate in certificate-internal.yaml, issued
+    # by the private CA in apps/cert-manager/internal-ca.yaml.
+    #
+    # Do not add `vault.vault.svc.cluster.local` here. A public CA
+    # issuing a certificate for a private, non-resolvable in-cluster
+    # name is exactly the thing the internal CA exists to avoid: it
+    # makes a private service identity depend on the public web PKI.
     - "vault.matiix310.dev"

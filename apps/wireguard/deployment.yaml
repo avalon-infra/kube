@@ -73,10 +73,29 @@ spec:
             # Server gets 10.8.0.1, clients get 10.8.0.2, .3, ...
             - name: INIT_IPV4_CIDR
               value: 10.8.0.0/24
-            # Closed network: clients only route 10.8.0.0/24 through
-            # the tunnel. nftables does the actual enforcement.
+            # Split tunnel: clients route the tunnel subnet AND the k3s
+            # pod/service networks through the VPN. Everything else
+            # (internet, the host itself) stays on the client's own route.
+            #
+            #   10.8.0.0/24  = the tunnel itself (peer-to-peer)
+            #   10.42.0.0/16  = k3s pod network (flannel)
+            #   10.43.0.0/16  = k3s service network (ClusterIPs, e.g. Vault)
+            #
+            # The host itself is NOT in this list, so peers cannot reach the
+            # VPS public IP, 10.8.0.1, or the k3s API server by IP.
+            #
+            # Server-side enforcement is done by wg-easy's OWN per-client
+            # firewall (enable it in the UI: "Enable Per-Client Firewall"),
+            # which manages its own iptables chain and is the authoritative
+            # policy. This env var is only the client-side half.
+            #
+            # NOTE: INIT_ALLOWED_IPS is read ONLY on the first start (fresh
+            # SQLite db). For an existing deployment, change the global
+            # AllowedIPs in the wg-easy UI, or set a per-client AllowedIPs
+            # for your own device. See the README section "Opening the
+            # tunnel to the cluster".
             - name: INIT_ALLOWED_IPS
-              value: 10.8.0.0/24
+              value: 10.8.0.0/24, 10.42.0.0/16, 10.43.0.0/16
             # Leave DNS empty — split tunnel, peers use their own DNS.
           securityContext:
             capabilities:

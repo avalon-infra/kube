@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vault-vpn-tls
+spec:
+  secretName: vault-vpn-tls
+  issuerRef:
+    name: prod-cluster-issuer
+    kind: ClusterIssuer
+  commonName: vault.vpn.matiix310.dev
+  dnsNames:
+    - "vault.vpn.matiix310.dev"
+  # DNS-01 against the matiix310.dev zone only (per apps/cert-manager/
+  # clusterissuer.yaml). No HTTP-01 / no ingress dependency, so the cert
+  # is issued even though the route itself is VPN-only.

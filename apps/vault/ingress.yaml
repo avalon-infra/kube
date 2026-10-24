@@ -1,3 +1,45 @@
+# PUBLIC Vault route - DISABLED by default.
+#
+# Vault used to be reachable from the internet at https://vault.matiix310.dev.
+# It is now only reachable through the WireGuard tunnel, via the
+# VPN-only route in apps/wireguard/vault-vpn-route.yaml
+# (https://vault.vpn.matiix310.dev).
+#
+# Why this file still exists but is not applied:
+#   - Removing the route entirely is the actual control ("the route does
+#     not exist"), not "the route exists but rejects some IPs".
+#   - Keeping the manifest in the repo (unreferenced) documents what the
+#     public exposure looked like, and makes it a one-line change to
+#     restore it if that is ever wanted.
+#
+# It is deliberately NOT listed in apps/vault/kustomization.yaml, so
+# ArgoCD does not render it and it never reaches the cluster.
+#
+# ---------------------------------------------------------------------------
+# IF YOU EVER RE-ENABLE THIS, read this first
+# ---------------------------------------------------------------------------
+# The public route CANNOT be restricted to VPN clients by IP. A VPN peer
+# at 10.8.0.x is masqueraded to the node IP (51.68.191.40) by
+# kube-proxy before Traefik sees it, because of this rule:
+#
+#   ip saddr != 10.42.0.0/16 ip daddr 10.43.9.131 ... jump KUBE-MARK-MASQ
+#
+# Traefik has no forwardedHeaders and no proxyProtocol configured, so it
+# cannot recover the real peer address. An IPAllowList here would either
+# reject all VPN traffic or (worse) have to allow the whole pod/service
+# CIDR, which lets every pod in the cluster reach the route.
+#
+# If a public route is genuinely required, restrict it by MEANINGFUL
+# IDENTITY instead, e.g.:
+#
+#   - Vault's own policies + auth methods (the real control), or
+#   - an IPAllowList on the PUBLIC IP of the client you want to allow
+#     (51.68.191.40/32 if you are always tunnelled, or your home IP), or
+#   - adding proxyProtocol + trustedIPs to the Traefik entrypoint so the
+#     real client IP survives, then allowlisting on that.
+#
+# ---------------------------------------------------------------------------
+
 apiVersion: traefik.io/v1alpha1
 kind: ServersTransport
 metadata:

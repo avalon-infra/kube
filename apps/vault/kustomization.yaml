@@ -3,4 +3,12 @@ kind: Kustomization
 
 resources:
   - certificate.yaml
-  - ingress.yaml
+  # The in-cluster TLS identity: leaf certificate issued by the internal
+  # CA (apps/cert-manager/internal-ca.yaml), plus the Service that
+  # exposes Vault's internal listener (8300).
+  - certificate-internal.yaml
+  - service-internal.yaml
+  # ingress.yaml is intentionally NOT listed: the public Vault route is
+  # disabled. Vault is only reachable through the WireGuard tunnel, via
+  # apps/wireguard/vault-vpn-route.yaml.
+  # See the header comment in ingress.yaml for how to re-enable it.
