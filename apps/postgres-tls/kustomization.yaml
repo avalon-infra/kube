@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # The TLS server certificate for PostgreSQL, issued by the cluster's
+  # internal CA. CloudNativePG is pointed at it with
+  # spec.certificates in apps/cloudnative-pg/cluster.yaml.
+  #
+  # It lives in its own directory, with its own ArgoCD Application
+  # (argo/postgres-tls.yaml), because the operator chart's Application
+  # (argo/cloudnative-pg.yaml) renders the whole apps/cloudnative-pg
+  # directory - the same directory that holds the Cluster resource. A
+  # resource that two Applications both manage is a shared resource:
+  # ArgoCD raises a SharedResourceWarning, one of the two Applications
+  # goes OutOfSync, and the other can prune it.
+  - certificate-server.yaml

@@ -32,8 +32,13 @@ spec:
   #
   # Changing these two fields does NOT restart the instance: `ssl_cert_file`
   # and `ssl_key_file` are reloadable PostgreSQL GUCs, and the `cnpg.io/reload`
-  # label on the Secret (see certificate-server.yaml) makes the operator
-  # pick up a renewed certificate with a `pg_ctl reload`.
+  # label on the Secret (see apps/postgres-tls/certificate-server.yaml) makes
+  # the operator pick up a renewed certificate with a `pg_ctl reload`.
+  #
+  # The certificate itself is managed by its own Application
+  # (argo/postgres-tls.yaml), because this directory is also rendered by
+  # the operator chart's Application, and a resource that two Applications
+  # manage is a shared resource.
   certificates:
     serverCASecret: pg-cluster-server
     serverTLSSecret: pg-cluster-server
