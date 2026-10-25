@@ -4,6 +4,24 @@ image:
 persistence:
   homarrDatabase:
     enabled: false
+  # The trust anchor for the PostgreSQL server certificate.
+  #
+  # Homarr talks to PostgreSQL with `sslmode=verify-full`, which makes the
+  # `pg` driver verify the server certificate against a CA bundle on disk
+  # AND check that the certificate covers the host it dialled.
+  #
+  # The chart has no generic "extra volumes" knob, but this persistence
+  # option mounts the keys of an existing Secret as individual files, which
+  # is exactly what a CA bundle needs. The Secret is the carrier
+  # certificate from apps/homarr/certificate-internal-ca.yaml; only its
+  # `ca.crt` key is mounted.
+  homarrTrustedCerts:
+    enabled: true
+    type: existingSecret
+    existingSecretName: internal-ca
+    existingSecretKeys:
+      - ca.crt
+    mountPath: "/appdata/trusted-certificates"
 
 database:
   type: postgresql

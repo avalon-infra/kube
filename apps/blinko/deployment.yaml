@@ -38,6 +38,16 @@ spec:
           volumeMounts:
             - name: blinko-storage
               mountPath: /app/.blinko
+            # The trust anchor for the PostgreSQL server certificate. The
+            # DATABASE_URL in `blinko-env` carries
+            # `sslmode=verify-full&sslrootcert=/etc/blinko/ca/ca.crt`, so
+            # this is the file that Prisma verifies the server certificate
+            # against. Only the `ca.crt` key is mounted; the Secret also
+            # holds a throwaway tls.crt/tls.key pair that carries nothing
+            # useful.
+            - name: postgres-ca
+              mountPath: /etc/blinko/ca
+              readOnly: true
           resources:
             requests:
               memory: "1Gi"
@@ -49,3 +59,9 @@ spec:
         - name: blinko-storage
           persistentVolumeClaim:
             claimName: blinko-storage
+        - name: postgres-ca
+          secret:
+            secretName: internal-ca
+            items:
+              - key: ca.crt
+                path: ca.crt

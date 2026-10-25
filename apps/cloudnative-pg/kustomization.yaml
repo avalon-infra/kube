@@ -3,4 +3,7 @@ kind: Kustomization
 
 resources:
   - cluster.yaml
+  # The PostgreSQL server certificate, issued by the cluster's internal CA.
+  # CNPG is pointed at it with spec.certificates in cluster.yaml.
+  - certificate-server.yaml
   - databases

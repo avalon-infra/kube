@@ -37,6 +37,28 @@ global:
         secretKeyRef:
           name: authentik-pg
           key: username
+    # TLS for the PostgreSQL connection.
+    #
+    # `AUTHENTIK_POSTGRESQL__SSLMODE` maps to authentik's
+    # `postgresql.sslmode` setting, which it puts in the Django database
+    # OPTIONS dict; psycopg (libpq) then reads it from there.
+    #
+    # `verify-full` is the important part: it encrypts the connection AND
+    # verifies that the server certificate was signed by the CA in
+    # SSLROOTCERT and that its SANs cover the host that was dialled. The
+    # default `prefer` would encrypt opportunistically but not authenticate
+    # the server at all, and `require` would encrypt without verifying
+    # anything.
+    #
+    # The default in authentik's own default.yml is `disable`, so this has
+    # to be set explicitly.
+    - name: AUTHENTIK_POSTGRESQL__SSLMODE
+      value: "verify-full"
+    # A PATH to the CA bundle, mounted from the `internal-ca` Secret
+    # (apps/authentik/certificate-internal-ca.yaml). libpq reads the file
+    # from disk; this is not the PEM content.
+    - name: AUTHENTIK_POSTGRESQL__SSLROOTCERT
+      value: "/etc/authentik/ca/ca.crt"
 
 postgresql:
   enabled: false
@@ -49,9 +71,21 @@ server:
     - name: postgres-creds
       secret:
         secretName: authentik-pg
+    # The trust anchor for the PostgreSQL server certificate. Only the
+    # `ca.crt` key is mounted; the Secret also holds a throwaway
+    # tls.crt/tls.key pair that carries nothing useful.
+    - name: postgres-ca
+      secret:
+        secretName: internal-ca
+        items:
+          - key: ca.crt
+            path: ca.crt
   volumeMounts:
     - name: postgres-creds
       mountPath: /postgres-creds
+      readOnly: true
+    - name: postgres-ca
+      mountPath: /etc/authentik/ca
       readOnly: true
 
 worker:
@@ -59,7 +93,18 @@ worker:
     - name: postgres-creds
       secret:
         secretName: authentik-pg
+    # The worker connects to PostgreSQL as well, so it needs the same
+    # trust anchor as the server.
+    - name: postgres-ca
+      secret:
+        secretName: internal-ca
+        items:
+          - key: ca.crt
+            path: ca.crt
   volumeMounts:
     - name: postgres-creds
       mountPath: /postgres-creds
+      readOnly: true
+    - name: postgres-ca
+      mountPath: /etc/authentik/ca
       readOnly: true

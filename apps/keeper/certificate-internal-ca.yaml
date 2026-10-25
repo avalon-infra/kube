@@ -1,0 +1,77 @@
+# The trust anchor for PostgreSQL, in the keeper namespace.
+#
+# ---------------------------------------------------------------------------
+# WHAT THIS IS
+# ---------------------------------------------------------------------------
+# The keeper app connects to PostgreSQL with `sslmode=verify-full`, which means
+# it has to verify the server's certificate against a CA it trusts. That CA
+# is the cluster's internal CA (apps/cert-manager/internal-ca.yaml) - the
+# same one that signs Vault's in-cluster certificate and, since the
+# PostgreSQL server certificate was moved to user-provided mode, the
+# PostgreSQL server certificate as well.
+#
+# ---------------------------------------------------------------------------
+# WHY THE "CARRIER" TRICK
+# ---------------------------------------------------------------------------
+# A pod can only mount a Secret that lives in its OWN namespace. The CA's
+# own Secret is in the `cert-manager` namespace (cert-manager's cluster
+# resource namespace), and PostgreSQL's is in `postgres`. So the CA
+# certificate has to exist in `authentik` too.
+#
+# This is done with cert-manager alone, using the same mechanism the
+# vault-secrets-operator already uses (see
+# apps/vault-secrets-operator/certificate-ca.yaml):
+#
+#   - This Certificate is issued by the `internal-cluster-issuer`
+#     ClusterIssuer, i.e. by the same private CA that signs the PostgreSQL
+#     server certificate.
+#   - cert-manager writes the CA's own certificate into the `ca.crt` key of
+#     every Secret it issues from a `ca` issuer. That `ca.crt` IS the trust
+#     anchor - the pod mounts that key and nothing else.
+#   - The `tls.crt` / `tls.key` keys of the same Secret are unused here.
+#     They exist only because cert-manager always writes a full key pair.
+#     This Secret is a carrier for one file, nothing more.
+#
+# So the chain authentik ends up trusting is exactly the chain that signed
+# the server's certificate - there is no second, hand-copied CA bundle that
+# could drift out of sync.
+#
+# cert-manager-trust-manager would be the canonical way to distribute a CA
+# into other namespaces, but it is a whole extra cluster-wide operator, and
+# the carrier trick is already the established pattern in this repository.
+#
+# ---------------------------------------------------------------------------
+# WHY THE CERTIFICATE ITSELF IS THROWAWAY
+# ---------------------------------------------------------------------------
+# The `commonName` / `dnsNames` below are never used for verification -
+# the keeper app only reads `ca.crt`. They exist because cert-manager requires a
+# Certificate to have a subject and a SAN. They are set to the name
+# authentik actually dials, so that if this Secret were ever misused as a
+# server certificate it would at least be the right name.
+#
+# The private key generated for it is throwaway too. It is never used to
+# serve anything, it is never mounted anywhere, and it never leaves the
+# Secret that cert-manager manages in this namespace.
+# ---------------------------------------------------------------------------
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: internal-ca
+  namespace: keeper
+spec:
+  secretName: internal-ca
+  issuerRef:
+    name: internal-cluster-issuer
+    kind: ClusterIssuer
+  commonName: pg-cluster-rw.postgres.svc.cluster.local
+  dnsNames:
+    - "pg-cluster-rw.postgres.svc.cluster.local"
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  # Renewed like the leaf certificate. cert-manager rewrites the Secret
+  # with a fresh `ca.crt` on renewal (the CA's own certificate is
+  # unchanged, so the trust anchor stays the same).
+  duration: 2160h    # 90 days
+  renewBefore: 720h   # 30 days

@@ -7,6 +7,37 @@ spec:
 
   imageName: ghcr.io/cloudnative-pg/postgresql:18
 
+  # User-provided certificates mode.
+  #
+  # By default CNPG generates its own CA and server certificate. The problem
+  # with that here is distribution, not cryptography: a pod can only mount a
+  # Secret from its own namespace, so an operator-generated CA in `postgres`
+  # would have to be copied into `authentik`, `keeper`, `blinko` and `homarr`
+  # before any client could verify the server.
+  #
+  # Instead the server certificate is issued by the cluster's existing
+  # internal CA (apps/cert-manager/internal-ca.yaml) - the same CA that
+  # signs Vault's in-cluster certificate - and the applications get that CA
+  # with the carrier trick (apps/<app>/certificate-internal-ca.yaml). One
+  # trust anchor for all in-cluster service identities.
+  #
+  # `serverCASecret` must contain a `ca.crt` key. cert-manager writes the
+  # issuing CA's certificate there automatically when it issues the server
+  # certificate, so the same Secret can serve as both.
+  #
+  # The operator still manages the CLIENT certificates (the
+  # `streaming_replica` certificate used for replication) itself, and still
+  # verifies the server certificate against the CA above with
+  # `sslmode=verify-ca`. Nothing about replication changes.
+  #
+  # Changing these two fields does NOT restart the instance: `ssl_cert_file`
+  # and `ssl_key_file` are reloadable PostgreSQL GUCs, and the `cnpg.io/reload`
+  # label on the Secret (see certificate-server.yaml) makes the operator
+  # pick up a renewed certificate with a `pg_ctl reload`.
+  certificates:
+    serverCASecret: pg-cluster-server
+    serverTLSSecret: pg-cluster-server
+
   storage:
     size: 30Gi
 

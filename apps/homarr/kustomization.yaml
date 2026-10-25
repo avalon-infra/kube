@@ -3,6 +3,8 @@ kind: Kustomization
 
 resources:
   - certificate.yaml
+  # The trust anchor for the PostgreSQL connection. See the file header.
+  - certificate-internal-ca.yaml
   - ingress.yaml
   - secret-database.yaml
   - secret-oidc.yaml

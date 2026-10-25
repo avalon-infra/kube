@@ -40,3 +40,20 @@ spec:
                 name: keeper-env
             - secretRef:
                 name: keeper-pg
+          # The trust anchor for the PostgreSQL server certificate. The
+          # DATABASE_URL in `keeper-env` carries
+          # `sslmode=verify-full&sslrootcert=/etc/keeper/ca/ca.crt`, so this
+          # is the file that `pg` verifies the server certificate against.
+          # Only the `ca.crt` key is mounted; the Secret also holds a
+          # throwaway tls.crt/tls.key pair that carries nothing useful.
+          volumeMounts:
+            - name: postgres-ca
+              mountPath: /etc/keeper/ca
+              readOnly: true
+      volumes:
+        - name: postgres-ca
+          secret:
+            secretName: internal-ca
+            items:
+              - key: ca.crt
+                path: ca.crt

@@ -1,0 +1,94 @@
+# The TLS server certificate for PostgreSQL, as seen from inside the cluster.
+#
+# ---------------------------------------------------------------------------
+# WHY THIS FILE EXISTS
+# ---------------------------------------------------------------------------
+# CloudNativePG can either generate its own server certificate (operator-managed
+# mode) or use one that is managed outside the operator (user-provided mode,
+# `spec.certificates.serverTLSSecret` / `serverCASecret`).
+#
+# We use user-provided mode, because the trust anchor has to reach FOUR
+# namespaces (authentik, keeper, blinko, homarr) and a pod can only mount a
+# Secret from its own namespace. Distributing an operator-generated CA would
+# mean either:
+#
+#   - copying the CA Secret across namespaces (a hand-rolled sync that can
+#     drift, and that ArgoCD's prune would fight), or
+#   - spreading the CA's PRIVATE KEY to every namespace so that a
+#     cert-manager `ca` Issuer could re-sign a carrier certificate there
+#     (a signing key in four namespaces is exactly what we do not want).
+#
+# Issuing the server certificate from the cluster's EXISTING internal CA
+# (apps/cert-manager/internal-ca.yaml) avoids both. The same CA already signs
+# Vault's in-cluster certificate, so after this change there is exactly ONE
+# trust anchor for all in-cluster service identities, and it can be handed to
+# each consumer with the carrier trick that is already in use for the
+# vault-secrets-operator (see apps/vault-secrets-operator/certificate-ca.yaml):
+# a throwaway Certificate in the consumer's namespace, whose `ca.crt` key
+# holds the CA certificate.
+#
+# The PUBLIC edge is unaffected: this certificate is never published to a
+# public hostname. Traefik keeps serving the Let's Encrypt certificates from
+# apps/*/certificate.yaml, which are a different, public trust chain.
+#
+# ---------------------------------------------------------------------------
+# THE SANs
+# ---------------------------------------------------------------------------
+# These are the names a client resolves the PostgreSQL Service to. The
+# `pg-cluster-rw` Service is the read-write endpoint every application
+# connects to; `-r` and `-ro` are the read-only replicas.
+#
+# `sslmode=verify-full` checks the hostname the client dialled against these
+# SANs, so they must match the name in the connection string exactly. The
+# applications all use
+# `pg-cluster-rw.postgres.svc.cluster.local`, which is listed here.
+#
+# The short forms are included too, because that is what CNPG itself
+# generates for its own operator-managed certificates and some tooling
+# (the `cnpg` kubectl plugin, `psql` invocations by hand) uses them.
+# ---------------------------------------------------------------------------
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: pg-cluster-server
+  namespace: postgres
+spec:
+  # This Secret is what CNPG is pointed at with
+  # `spec.certificates.serverTLSSecret`. It must be of type
+  # kubernetes.io/tls and contain tls.crt + tls.key.
+  secretName: pg-cluster-server
+  issuerRef:
+    # The ClusterIssuer from apps/cert-manager/internal-ca.yaml. This is the
+    # same private CA that signs Vault's internal certificate.
+    name: internal-cluster-issuer
+    kind: ClusterIssuer
+  commonName: pg-cluster-rw.postgres.svc.cluster.local
+  dnsNames:
+    - "pg-cluster-rw.postgres.svc.cluster.local"
+    - "pg-cluster-rw.postgres.svc"
+    - "pg-cluster-rw.postgres"
+    - "pg-cluster-rw"
+    - "pg-cluster-r.postgres.svc.cluster.local"
+    - "pg-cluster-r.postgres.svc"
+    - "pg-cluster-r.postgres"
+    - "pg-cluster-r"
+    - "pg-cluster-ro.postgres.svc.cluster.local"
+    - "pg-cluster-ro.postgres.svc"
+    - "pg-cluster-ro.postgres"
+    - "pg-cluster-ro"
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  # PostgreSQL picks the certificate up with a `pg_ctl reload` when the
+  # Secret changes; `ssl_cert_file` / `ssl_key_file` are reloadable GUCs, so
+  # a renewal does not restart the instance and does not interrupt the
+  # applications.
+  duration: 2160h    # 90 days
+  renewBefore: 720h   # 30 days
+  # The `cnpg.io/reload` label tells the CNPG operator to watch this Secret
+  # and reload the instance when it changes, instead of waiting for the
+  # next pod restart.
+  secretTemplate:
+    labels:
+      cnpg.io/reload: ""

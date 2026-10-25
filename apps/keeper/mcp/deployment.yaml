@@ -34,3 +34,16 @@ spec:
                 name: keeper-env
             - secretRef:
                 name: keeper-pg
+          # The trust anchor for the PostgreSQL server certificate. See
+          # apps/keeper/api/deployment.yaml for the details.
+          volumeMounts:
+            - name: postgres-ca
+              mountPath: /etc/keeper/ca
+              readOnly: true
+      volumes:
+        - name: postgres-ca
+          secret:
+            secretName: internal-ca
+            items:
+              - key: ca.crt
+                path: ca.crt
