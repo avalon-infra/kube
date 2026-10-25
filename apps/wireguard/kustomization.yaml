@@ -4,17 +4,4 @@ kind: Kustomization
 resources:
   - deployment.yaml
   - secret.yaml
-  # The route to Vault and its certificate are NOT here any more.
-  #
-  # There is ONE hostname for Vault - `vault.matiix310.dev` - and its
-  # route lives in apps/vault/ingress.yaml, in the namespace where the
-  # `vault` Service actually is. The route that used to live here
-  # (vault-vpn-route.yaml, matching vault.vpn.matiix310.dev) never
-  # worked: an IngressRoute in the wireguard namespace cannot reference
-  # the `vault` Service without an explicit `namespace:` field, and
-  # Traefik logged "kubernetes service not found: wireguard/vault" on
-  # every refresh.
-  #
-  # See apps/vault/ingress.yaml for the route, and the README section
-  # "Opening the tunnel to the cluster" for the DNS and AllowedIPs
-  # setup a VPN client needs.
+  - middleware.yaml
