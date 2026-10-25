@@ -1,0 +1,29 @@
+# Enable ArgoCD's webhook endpoint.
+#
+# A strategic-merge patch on the argocd-server Deployment. The upstream
+# install.yaml does NOT set a namespace on the Deployment (the
+# `namespace: argocd` transformer in kustomization.yaml does that), so
+# this patch must not set one either - a patch that names a namespace
+# does not match the un-namespaced resource and kustomize fails with
+# "no resource matches strategic merge patch".
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: argocd-server
+          env:
+            # Enable the webhook endpoint, so that a push to the git repo
+            # triggers a sync immediately instead of waiting for the next
+            # poll (default: every 3 minutes).
+            #
+            # The shared secret ArgoCD verifies the incoming request with
+            # is `webhook.github.secret` in the `argocd-secret` Secret,
+            # which is materialised from Vault by apps/argo/secret.yaml.
+            # It must be identical to the "Secret" configured on the
+            # GitHub webhook.
+            - name: ARGOCD_WEBHOOK_ENABLED
+              value: "true"

@@ -7,3 +7,7 @@ resources:
   - certificate.yaml
   - ingress.yaml
   - secret.yaml
+patches:
+  # Enable the GitHub webhook so a push syncs immediately rather than on
+  # the next poll. See patch-webhook.yaml for the details.
+  - path: patch-webhook.yaml
