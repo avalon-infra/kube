@@ -8,7 +8,7 @@ resources:
   # carries Vault's internal listener (8300).
   - certificate-internal.yaml
   - service.yaml
-  # ingress.yaml is intentionally NOT listed: the public Vault route is
-  # disabled. Vault is only reachable through the WireGuard tunnel, via
-  # apps/wireguard/vault-vpn-route.yaml.
-  # See the header comment in ingress.yaml for how to re-enable it.
+  # The only route to Vault. It is NOT published to the internet - the
+  # hostname resolves to the ClusterIP for VPN clients only, so the route
+  # is reachable through the WireGuard tunnel and nowhere else.
+  - ingress.yaml

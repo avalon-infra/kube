@@ -1,43 +1,57 @@
-# PUBLIC Vault route - DISABLED by default.
-#
-# Vault used to be reachable from the internet at https://vault.matiix310.dev.
-# It is now only reachable through the WireGuard tunnel, via the
-# VPN-only route in apps/wireguard/vault-vpn-route.yaml
-# (https://vault.vpn.matiix310.dev).
-#
-# Why this file still exists but is not applied:
-#   - Removing the route entirely is the actual control ("the route does
-#     not exist"), not "the route exists but rejects some IPs".
-#   - Keeping the manifest in the repo (unreferenced) documents what the
-#     public exposure looked like, and makes it a one-line change to
-#     restore it if that is ever wanted.
-#
-# It is deliberately NOT listed in apps/vault/kustomization.yaml, so
-# ArgoCD does not render it and it never reaches the cluster.
+# Vault's Traefik route - the ONLY route to Vault, reached over WireGuard.
 #
 # ---------------------------------------------------------------------------
-# IF YOU EVER RE-ENABLE THIS, read this first
+# ONE NAME, ONE ROUTE
 # ---------------------------------------------------------------------------
-# The public route CANNOT be restricted to VPN clients by IP. A VPN peer
-# at 10.8.0.x is masqueraded to the node IP (51.68.191.40) by
-# kube-proxy before Traefik sees it, because of this rule:
+# Vault used to be published on the internet at https://vault.matiix310.dev,
+# and a second, VPN-only route used https://vault.vpn.matiix310.dev. Two
+# names, two certificates, and a migration between them.
 #
-#   ip saddr != 10.42.0.0/16 ip daddr 10.43.9.131 ... jump KUBE-MARK-MASQ
+# There is now exactly ONE route and ONE name: `vault.matiix310.dev`.
 #
-# Traefik has no forwardedHeaders and no proxyProtocol configured, so it
-# cannot recover the real peer address. An IPAllowList here would either
-# reject all VPN traffic or (worse) have to allow the whole pod/service
-# CIDR, which lets every pod in the cluster reach the route.
+# It lives in THIS namespace (vault) because that is where the `vault`
+# Service is. An IngressRoute in another namespace cannot reference it
+# without an explicit `namespace:` field - and the previous
+# `apps/wireguard/vault-vpn-route.yaml` did not have one, so Traefik
+# logged:
 #
-# If a public route is genuinely required, restrict it by MEANINGFUL
-# IDENTITY instead, e.g.:
+#   error="kubernetes service not found: wireguard/vault"
 #
-#   - Vault's own policies + auth methods (the real control), or
-#   - an IPAllowList on the PUBLIC IP of the client you want to allow
-#     (51.68.191.40/32 if you are always tunnelled, or your home IP), or
-#   - adding proxyProtocol + trustedIPs to the Traefik entrypoint so the
-#     real client IP survives, then allowlisting on that.
+# continuously. That route never worked. This one is in the right
+# namespace, so it resolves.
 #
+# ---------------------------------------------------------------------------
+# WHY THERE IS NO IP ALLOWLIST
+# ---------------------------------------------------------------------------
+# The obvious approach - allowlist the tunnel subnet 10.8.0.0/24 - does
+# not work, and it is worth understanding why:
+#
+#   chain KUBE-SVC-UEJ6RQQLJG4VJPPB {
+#       ip saddr != 10.42.0.0/16 ip daddr 10.43.9.131 ... jump KUBE-MARK-MASQ
+#   }
+#
+# A VPN peer at 10.8.0.x is NOT in the pod CIDR, so kube-proxy MASQUERADES
+# its traffic to the node IP (51.68.191.40) before the connection reaches
+# the pod. By the time Traefik sees the connection, the source IP is the
+# node IP, not 10.8.0.x.
+#
+# Traefik has neither `forwardedHeaders` nor `proxyProtocol` configured
+# (verified with `kubectl -n kube-system get deploy traefik`), so it has
+# no other way to recover the real peer address. An IPAllowList would
+# therefore have to allow 10.42.0.0/16 / 10.43.0.0/16 - which means any
+# pod in the cluster could reach the route. That is not a security
+# control.
+#
+# The control is instead: **the route does not exist publicly.** The
+# public IngressRoute that used to publish vault.matiix310.dev to the
+# internet has been removed, so this is the only route to Vault and it
+# is reached through the WireGuard tunnel. That is stronger than "the
+# route exists but rejects some IPs".
+#
+# The hostname resolves to the Vault ClusterIP (10.43.9.131) for VPN
+# clients, so the request genuinely travels over wg0. See
+# apps/wireguard/README.md, section "Opening the tunnel to the cluster",
+# for the DNS and AllowedIPs setup.
 # ---------------------------------------------------------------------------
 
 apiVersion: traefik.io/v1alpha1
@@ -45,6 +59,10 @@ kind: ServersTransport
 metadata:
   name: traefik-vault-transport
 spec:
+  # Vault's pod serves the `vault-tls` certificate, whose only SAN is
+  # vault.matiix310.dev. The hostname is a routing label; the TLS
+  # handshake still happens against the Vault pod - so serverName is
+  # pinned rather than disabling verification.
   serverName: vault.matiix310.dev
 ---
 apiVersion: traefik.io/v1alpha1

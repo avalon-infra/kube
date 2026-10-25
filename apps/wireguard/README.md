@@ -405,36 +405,35 @@ script to re-run.
 > kubectl -n wireguard exec deploy/wg-easy -- iptables -S FORWARD | head
 > ```
 
-**3. The Traefik route — `vault-vpn-route.yaml`**
+**3. The Traefik route — `apps/vault/ingress.yaml`**
 
-`apps/wireguard/vault-vpn-route.yaml` exposes Vault on the hostname
-`vault.vpn.matiix310.dev`, reachable only through the tunnel.
-
-The **public** route `vault.matiix310.dev` has been **removed** — it is no
-longer listed in `apps/vault/kustomization.yaml`, so ArgoCD never renders
-it and it never reaches the cluster. The manifest is kept in the repo
-(unreferenced) as documentation; see the header comment in
-`apps/vault/ingress.yaml`.
-
-That is the whole security model:
-
-- Vault is **not published** — there is no public route to attack.
-- The only way in is the WireGuard tunnel.
-- Inside the tunnel, wg-easy's per-client firewall limits each peer to
-  `10.43.9.131:8200`.
+There is **one** route to Vault and **one** hostname:
+`vault.matiix310.dev`. It lives in `apps/vault/ingress.yaml`, in the
+`vault` namespace, because that is where the `vault` Service is.
 
 ```yaml
 routes:
-  - match: Host(`vault.vpn.matiix310.dev`)
+  - match: Host(`vault.matiix310.dev`)
     services:
       - name: vault
         port: 8200
         scheme: https
-        serversTransport: traefik-vault-vpn-transport
+        serversTransport: traefik-vault-transport
 ```
+
+The route is **not published to the internet**. The public IngressRoute
+that used to expose Vault at `vault.matiix310.dev` has been removed — the
+hostname now resolves to the ClusterIP for VPN clients only, so this
+route is reachable through the tunnel and nowhere else.
 
 Notes on this route:
 
+- **It is in the `vault` namespace on purpose.** An IngressRoute in
+  another namespace cannot reference the `vault` Service without an
+  explicit `namespace:` field. The previous route lived in this
+  (`wireguard`) namespace and Traefik logged
+  `kubernetes service not found: wireguard/vault` on every refresh — it
+  never worked.
 - **No IPAllowList middleware.** See
   [Traefik and the tunnel](#traefik-and-the-tunnel) for why an IP
   allowlist cannot work here — kube-proxy masquerades the peer address
@@ -442,14 +441,16 @@ Notes on this route:
 - **Port 8200 == targetPort == container port.** The `80 -> 51821`
   indirection breaks Traefik resolution (see Troubleshooting).
 - **`serversTransport.serverName: vault.matiix310.dev`.** Vault's pod
-  serves a certificate for `vault.matiix310.dev`. The VPN hostname is only
-  a Traefik routing label — the TLS handshake still happens against the
-  Vault pod — so we pin `serverName` rather than disabling verification.
-- **Its own certificate.** `vault-tls` only covers `vault.matiix310.dev`
-  (the `*.matiix310.dev` wildcard does **not** match a two-label
-  subdomain), so `certificate-vpn.yaml` issues a separate
-  `vault-vpn-tls` certificate for `vault.vpn.matiix310.dev`. DNS-01
-  against `matiix310.dev` — no public ingress needed to issue it.
+  serves the `vault-tls` certificate, whose only SAN is
+  `vault.matiix310.dev`. The hostname is a routing label; the TLS
+  handshake still happens against the Vault pod — so `serverName` is
+  pinned rather than disabling verification.
+- **It reuses the existing `vault-tls` certificate.** No new certificate
+  is needed: `vault-tls` is already issued by the public ACME issuer for
+  exactly this name, and it is the certificate the Vault *pod* serves
+  (mounted as `tls_cert_file` in `argo/vault.yaml`). A separate
+  `vault.vpn.matiix310.dev` certificate used to exist; it is gone,
+  because there is no longer a second name.
 
 **4. In-cluster access — direct to the Service, on the internal listener**
 
@@ -573,13 +574,30 @@ peer 10.8.0.x
 
 ### DNS on the peer
 
-`vault.vpn.matiix310.dev` must resolve **to the Vault ClusterIP
-`10.43.9.131`**, not to the public IP. Use peer-local DNS:
+`vault.matiix310.dev` must resolve **to the Vault ClusterIP
+`10.43.9.131`**, not to the public IP.
 
-```
-[DNS]
-vault.vpn.matiix310.dev = 10.43.9.131
-```
+> **Note on `[DNS]`.** In a WireGuard config, `[DNS]` is a **DNS
+> *server***, not a custom record — `wg-quick` writes it out as
+> `nameserver <value>`. A `name = ip` pair there is not a hosts entry
+> and does not work. To map the name to the ClusterIP, either:
+>
+> - add a Cloudflare `A` record for `vault.matiix310.dev` →
+>   `10.43.9.131` (a private, non-routable address, so publishing it is
+>   harmless), or
+> - put `10.43.9.131 vault.matiix310.dev` in `/etc/hosts` on the client.
+>
+> Pointing the client at the cluster's own resolver instead is also
+> possible:
+>
+> ```
+> [Interface]
+> DNS = 10.43.0.10
+> ```
+>
+> That makes `vault.vault.svc.cluster.local` resolve — but that is the
+> *internal* identity, on port 8300, verified against the internal CA
+> rather than the public one.
 
 This is the important part: the public IP is **not** in the client's
 `AllowedIPs`, so a peer that resolved the hostname to `51.68.191.40`
@@ -590,8 +608,8 @@ Pointing DNS at the ClusterIP keeps the request inside the tunnel, where
 the tunnel range is in `AllowedIPs` and the traffic genuinely flows over
 wg0.
 
-> **Note.** The certificate is issued for `vault.vpn.matiix310.dev`, so
-> the client must use that **hostname** (not the bare IP) for TLS to
+> **Note.** The certificate is issued for `vault.matiix310.dev`, so the
+> client must use that **hostname** (not the bare IP) for TLS to
 > validate. `https://10.43.9.131:8200` will fail certificate validation
 > even though the connection works.
 
@@ -855,10 +873,9 @@ server briefly breaks. Do not run `setup-nftables.sh`; use wg-easy's
 built-in firewall instead.
 
 **Peer reaches the cluster but the Vault route returns 404.**
-Traefik has no route matching the hostname. The public route
-`vault.matiix310.dev` was removed; the VPN route matches
-`vault.vpn.matiix310.dev`. Check the Host header / URL the peer uses,
-and that peer-local DNS maps it to `10.43.9.131`:
+Traefik has no route matching the hostname. The only Vault route matches
+`vault.matiix310.dev`. Check the Host header / URL the peer uses, and
+that DNS maps it to `10.43.9.131`:
 
 ```sh
 kubectl -n kube-system logs deploy/traefik --tail=100 | grep -i vault
@@ -866,25 +883,31 @@ kubectl -n kube-system logs deploy/traefik --tail=100 | grep -i vault
 
 **Peer reaches the cluster but the Vault route times out.**
 The connection is probably going out to the public IP instead of through
-the tunnel, because `vault.vpn.matiix310.dev` resolved to
-`51.68.191.40`. The public IP is not in the client's `AllowedIPs`, so the
-peer sends it to its own gateway. Point the peer at the ClusterIP
-`10.43.9.131` via peer-local DNS.
+the tunnel, because `vault.matiix310.dev` resolved to `51.68.191.40`.
+The public IP is not in the client's `AllowedIPs`, so the peer sends it
+to its own gateway. Point the name at the ClusterIP `10.43.9.131`
+(Cloudflare `A` record or `/etc/hosts`).
 
 **Peer reaches the cluster but TLS fails with a certificate error.**
-`vault.vpn.matiix310.dev` is covered by its own certificate
-(`vault-vpn-tls`), not by the `vault-tls` one. Check that it was issued:
+`vault.matiix310.dev` is covered by the `vault-tls` certificate, which
+is also the certificate the Vault pod serves. Check that it was issued:
 
 ```sh
-kubectl -n wireguard get certificate vault-vpn-tls
-kubectl -n wireguard get secret vault-vpn-tls -o jsonpath='{.data.tls\.crt}' \
+kubectl -n vault get certificate vault-tls
+kubectl -n vault get secret vault-tls -o jsonpath='{.data.tls\.crt}' \
   | base64 -d | openssl x509 -noout -text | grep -A1 "Alternative Name"
 ```
 
 If the peer connects to the ClusterIP `10.43.9.131` instead of the
 hostname, TLS validation fails because the certificate is issued for
-`vault.vpn.matiix310.dev`. Use the hostname in the URL, or
+`vault.matiix310.dev`. Use the hostname in the URL, or
 `VAULT_SKIP_VERIFY=true` for a quick test.
+
+**Traefik logs "kubernetes service not found: <ns>/vault".**
+The IngressRoute is in the wrong namespace. An IngressRoute can only
+reference a Service in its own namespace without an explicit
+`namespace:` field. The Vault route belongs in `apps/vault/` (namespace
+`vault`), which is where the Service is.
 
 **Everything works but the peer can still reach the host.**
 The `DROP` is missing from the **legacy iptables** chain, or wg-easy's
@@ -954,19 +977,14 @@ vault kv delete secret/kvv2/wg-easy/data
     ingress.yaml        <- Traefik IngressRoute for wg.matiix310.dev
     certificate.yaml    <- cert-manager cert
     secret.yaml         <- VaultSecret → wg-easy-credentials Secret
-    certificate-vpn.yaml
-                        <- cert-manager cert for vault.vpn.matiix310.dev
-    vault-vpn-route.yaml
-                        <- Traefik IngressRoute + ServersTransport for the
-                           VPN-only Vault hostname
   argo/wireguard.yaml   <- ArgoCD Application
 ```
 
 > **Note.** `service.yaml` and `ingress.yaml` (the wg-easy **web UI** on
 > `wg.matiix310.dev`) are described here but are **not currently in the
-> repo** — `kustomization.yaml` lists only `deployment.yaml`,
-> `secret.yaml`, `certificate-vpn.yaml` and `vault-vpn-route.yaml`. The
-> UI is therefore reachable on the pod IP / port 51821 only, not through
+> repo** — `kustomization.yaml` lists only `deployment.yaml` and
+> `secret.yaml`. The UI is therefore reachable on the pod IP / port 51821
+> only, not through
 > Traefik. Add those two files if you want the UI on
 > `wg.matiix310.dev`; remember the port rule (Service `port` must equal
 > the container port 51821).
