@@ -17,4 +17,3 @@ spec:
         - name: vault
           port: 8200
           scheme: https
-          serversTransport: traefik-vault-transport
