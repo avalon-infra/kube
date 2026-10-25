@@ -10,9 +10,9 @@ spec:
   routes:
     - match: Host(`vault.matiix310.dev`)
       kind: Rule
-      middlewares:
-        - name: vpn-only
-          namespace: wireguard
+      # middlewares:
+      #   - name: vpn-only
+      #     namespace: wireguard
       services:
         - name: vault
           port: 8200
