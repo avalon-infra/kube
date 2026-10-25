@@ -1,0 +1,33 @@
+# The values file for the CloudNativePG OPERATOR chart.
+#
+# ---------------------------------------------------------------------------
+# WHY THIS FILE IS IN ITS OWN DIRECTORY
+# ---------------------------------------------------------------------------
+# The operator chart is deployed by argo/cloudnative-pg.yaml, which has two
+# sources: the chart, and this repository. The second source uses
+# `ref: values`, so ArgoCD takes the values file from
+# `$values/apps/cloudnative-pg/values-only/values.yaml`.
+#
+# It has to be a directory of its own. ArgoCD renders the resources of the
+# path it is given as well as the referenced file, so when the values file
+# lived in apps/cloudnative-pg, the operator's Application ALSO rendered
+# cluster.yaml and databases/ into its own namespace (cnpg-system). That
+# produced a phantom `Cluster/pg-cluster` in cnpg-system - a second,
+# half-working PostgreSQL cluster with its own 30Gi PVC - and a
+# `ClusterIsNotReady` condition that kept the operator's Application
+# health at Suspended.
+#
+# The Cluster and the per-app Database resources belong to
+# argo/cloudnative-pg-cluster.yaml, which deploys them into the postgres
+# namespace. This directory only ever holds the operator's own settings.
+# ---------------------------------------------------------------------------
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: "500m"
+    memory: 512Mi

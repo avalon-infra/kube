@@ -13,10 +13,18 @@ spec:
       targetRevision: 0.29.0
       helm:
         valueFiles:
-          - "$values/apps/cloudnative-pg/values.yaml"
+          # The operator's own settings. This path holds the values file
+          # ONLY: ArgoCD renders the resources of the path it is given as
+          # well as the referenced file, so pointing it at
+          # apps/cloudnative-pg would make the operator's Application
+          # render the Cluster and the Database resources into its own
+          # namespace (cnpg-system) as well. Those belong to
+          # argo/cloudnative-pg-cluster.yaml, which deploys them into the
+          # postgres namespace.
+          - "$values/apps/cloudnative-pg/values-only/values.yaml"
     - repoURL: https://github.com/avalon-infra/kube.git
       targetRevision: HEAD
-      path: apps/cloudnative-pg
+      path: apps/cloudnative-pg/values-only
       ref: values
   destination:
     name: in-cluster
