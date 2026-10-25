@@ -5,10 +5,4 @@ metadata:
 spec:
   ipAllowList:
     sourceRange:
-      # The WireGuard client subnet. wg-easy assigns 10.8.0.2, .3, ...
       - "10.8.0.0/24"
-      # The pod CIDR. Traffic from another pod (e.g. a health check, or
-      # the vault-secrets-operator) is not tunnelled and would otherwise
-      # be rejected. This is the same network the pods live in, so it
-      # cannot be reached from the internet.
-      - "10.42.0.0/16"
