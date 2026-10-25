@@ -5,4 +5,6 @@ metadata:
 spec:
   ipAllowList:
     sourceRange:
-      - "10.8.0.0/24"
+      # Must be the load balancer IP which allow routing internal and wireguard traffic
+      # kubectl get pod -n kube-system -o wide | grep 'svclb-traefik'
+      - "10.42.0.182/32"
