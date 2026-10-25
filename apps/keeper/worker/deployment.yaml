@@ -16,6 +16,18 @@ spec:
         - name: keeper-worker
           image: ghcr.io/ridafkih/keeper-worker:2.23.0
           env:
+            # The trust anchor for the PostgreSQL server certificate.
+            #
+            # Bun.sql (the driver keeper uses) cannot take the CA from the
+            # connection URL - it does not implement libpq's `sslrootcert`
+            # parameter and ignores the `tls`/`ssl` constructor options.
+            # NODE_EXTRA_CA_CERTS is the supported way to give it one, and
+            # it points at a FILE, so the CA has to be mounted into the pod.
+            #
+            # Only the `ca.crt` key is mounted; the Secret also holds a
+            # throwaway tls.crt/tls.key pair that carries nothing useful.
+            - name: NODE_EXTRA_CA_CERTS
+              value: /etc/keeper/ca/ca.crt
             - name: NODE_ENV
               value: PRODUCTION
           envFrom:
