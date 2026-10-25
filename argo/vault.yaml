@@ -92,7 +92,7 @@ spec:
             # The container port for the in-cluster (internal CA) listener.
             # The chart's own Service template hard-codes 8200 and 8201
             # and offers no value to add a port, so the Service that
-            # exposes 8300 is defined in apps/vault/service-internal.yaml
+            # exposes 8300 is defined in apps/vault/service.yaml
             # and applied by this same ArgoCD Application.
             #
             # The port NAME has to be at most 15 characters (Kubernetes
