@@ -52,10 +52,9 @@ spec:
                 name: keeper-env
             - secretRef:
                 name: keeper-pg
-          # The trust anchor for the PostgreSQL server certificate. The
-          # DATABASE_URL in `keeper-env` carries
-          # `sslmode=verify-full&sslrootcert=/etc/keeper/ca/ca.crt`, so this
-          # is the file that `pg` verifies the server certificate against.
+          # The trust anchor for the PostgreSQL server certificate. This is
+          # the file that NODE_EXTRA_CA_CERTS points at, and therefore the
+          # CA that Bun.sql verifies the server certificate against.
           # Only the `ca.crt` key is mounted; the Secret also holds a
           # throwaway tls.crt/tls.key pair that carries nothing useful.
           volumeMounts:
