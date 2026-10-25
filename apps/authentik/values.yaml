@@ -13,7 +13,7 @@ global:
   env:
     # 10.42.0.184 = lb ip
     - name: AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS
-      value: 10.42.0.184/32
+      value: 10.42.0.182/32,10.42.0.198/32
     - name: AUTHENTIK_POSTGRESQL__HOST
       value: "pg-cluster-rw.postgres.svc.cluster.local"
     - name: AUTHENTIK_POSTGRESQL__PORT
