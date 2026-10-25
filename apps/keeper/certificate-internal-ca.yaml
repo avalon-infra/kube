@@ -1,77 +1,51 @@
-# The trust anchor for PostgreSQL, in the keeper namespace.
+# keeper's PostgreSQL CA carrier — REMOVED, deliberately.
 #
 # ---------------------------------------------------------------------------
-# WHAT THIS IS
+# WHY THIS FILE IS EMPTY
 # ---------------------------------------------------------------------------
-# The keeper app connects to PostgreSQL with `sslmode=verify-full`, which means
-# it has to verify the server's certificate against a CA it trusts. That CA
-# is the cluster's internal CA (apps/cert-manager/internal-ca.yaml) - the
-# same one that signs Vault's in-cluster certificate and, since the
-# PostgreSQL server certificate was moved to user-provided mode, the
-# PostgreSQL server certificate as well.
+# This used to publish the cluster's internal CA (`internal-cluster-issuer`,
+# see apps/cert-manager/internal-ca.yaml) into the keeper namespace, as a
+# `ca.crt` key the keeper pods mounted at /etc/keeper/ca. It existed so
+# that keeper's PostgreSQL connection could use `sslmode=verify-full`.
 #
-# ---------------------------------------------------------------------------
-# WHY THE "CARRIER" TRICK
-# ---------------------------------------------------------------------------
-# A pod can only mount a Secret that lives in its OWN namespace. The CA's
-# own Secret is in the `cert-manager` namespace (cert-manager's cluster
-# resource namespace), and PostgreSQL's is in `postgres`. So the CA
-# certificate has to exist in `authentik` too.
+# It does not work, and the connection was reverted to plaintext.
 #
-# This is done with cert-manager alone, using the same mechanism the
-# vault-secrets-operator already uses (see
-# apps/vault-secrets-operator/certificate-ca.yaml):
+# keeper runs on Bun and reaches PostgreSQL through drizzle-orm's `bun-sql`
+# driver, i.e. `Bun.sql`. Measured behaviour of Bun 1.4.0:
 #
-#   - This Certificate is issued by the `internal-cluster-issuer`
-#     ClusterIssuer, i.e. by the same private CA that signs the PostgreSQL
-#     server certificate.
-#   - cert-manager writes the CA's own certificate into the `ca.crt` key of
-#     every Secret it issues from a `ca` issuer. That `ca.crt` IS the trust
-#     anchor - the pod mounts that key and nothing else.
-#   - The `tls.crt` / `tls.key` keys of the same Secret are unused here.
-#     They exist only because cert-manager always writes a full key pair.
-#     This Secret is a carrier for one file, nothing more.
+#   Bun.sql ignores libpq's `sslrootcert`   -> forwards it to PostgreSQL as
+#                                               a server parameter, and the
+#                                               connection fails with
+#                                               "unrecognized configuration
+#                                               parameter"
+#   Bun.sql ignores its `tls`/`ssl` ctor    -> drizzle's bun-sql wrapper
+#                                               does not forward `tls` to
+#                                               Bun.sql at all
+#   NODE_EXTRA_CA_CERTS is NOT honoured     -> with NO CA configured,
+#                                               `sslmode=verify-full` still
+#                                               connects. The verification
+#                                               is silently skipped. Only a
+#                                               *wrong* CA errors, which is
+#                                               not a guarantee.
+#   Bun.sql `tls.ca` wants PEM CONTENT      -> not a file path, and
+#                                               unreachable anyway because
+#                                               of the wrapper above
 #
-# So the chain authentik ends up trusting is exactly the chain that signed
-# the server's certificate - there is no second, hand-copied CA bundle that
-# could drift out of sync.
+# So `sslmode=verify-full` in keeper's DATABASE_URL was misleading: it
+# implied the server was authenticated when it was not. It was removed, and
+# with it the CA mount and this carrier.
 #
-# cert-manager-trust-manager would be the canonical way to distribute a CA
-# into other namespaces, but it is a whole extra cluster-wide operator, and
-# the carrier trick is already the established pattern in this repository.
+# Making this genuinely verified would mean patching the keeper image with
+# a custom `createDatabase()` that reads the CA and hands it to `Bun.sql`
+# as PEM content. That is a fork of the upstream image and is out of scope
+# for this cluster. The traffic stays on the single node.
 #
-# ---------------------------------------------------------------------------
-# WHY THE CERTIFICATE ITSELF IS THROWAWAY
-# ---------------------------------------------------------------------------
-# The `commonName` / `dnsNames` below are never used for verification -
-# the keeper app only reads `ca.crt`. They exist because cert-manager requires a
-# Certificate to have a subject and a SAN. They are set to the name
-# authentik actually dials, so that if this Secret were ever misused as a
-# server certificate it would at least be the right name.
+# The other two consumers of the same PostgreSQL cluster - authentik
+# (psycopg) and homarr (node-postgres) - DO verify the server certificate
+# properly, and their carriers are still in place:
 #
-# The private key generated for it is throwaway too. It is never used to
-# serve anything, it is never mounted anywhere, and it never leaves the
-# Secret that cert-manager manages in this namespace.
-# ---------------------------------------------------------------------------
-
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: internal-ca
-  namespace: keeper
-spec:
-  secretName: internal-ca
-  issuerRef:
-    name: internal-cluster-issuer
-    kind: ClusterIssuer
-  commonName: pg-cluster-rw.postgres.svc.cluster.local
-  dnsNames:
-    - "pg-cluster-rw.postgres.svc.cluster.local"
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  # Renewed like the leaf certificate. cert-manager rewrites the Secret
-  # with a fresh `ca.crt` on renewal (the CA's own certificate is
-  # unchanged, so the trust anchor stays the same).
-  duration: 2160h    # 90 days
-  renewBefore: 720h   # 30 days
+#   apps/authentik/certificate-internal-ca.yaml
+#   apps/homarr/certificate-internal-ca.yaml
+#
+# If keeper is ever moved onto a driver that can verify (a patched
+# `createDatabase()`), this carrier is exactly what it would need again.

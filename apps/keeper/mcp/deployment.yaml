@@ -19,18 +19,6 @@ spec:
             - containerPort: 3002
               name: http
           env:
-            # The trust anchor for the PostgreSQL server certificate.
-            #
-            # Bun.sql (the driver keeper uses) cannot take the CA from the
-            # connection URL - it does not implement libpq's `sslrootcert`
-            # parameter and ignores the `tls`/`ssl` constructor options.
-            # NODE_EXTRA_CA_CERTS is the supported way to give it one, and
-            # it points at a FILE, so the CA has to be mounted into the pod.
-            #
-            # Only the `ca.crt` key is mounted; the Secret also holds a
-            # throwaway tls.crt/tls.key pair that carries nothing useful.
-            - name: NODE_EXTRA_CA_CERTS
-              value: /etc/keeper/ca/ca.crt
             - name: MCP_PORT
               value: "3002"
             - name: MCP_PUBLIC_URL
@@ -46,16 +34,3 @@ spec:
                 name: keeper-env
             - secretRef:
                 name: keeper-pg
-          # The trust anchor for the PostgreSQL server certificate. See
-          # apps/keeper/api/deployment.yaml for the details.
-          volumeMounts:
-            - name: postgres-ca
-              mountPath: /etc/keeper/ca
-              readOnly: true
-      volumes:
-        - name: postgres-ca
-          secret:
-            secretName: internal-ca
-            items:
-              - key: ca.crt
-                path: ca.crt
