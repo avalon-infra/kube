@@ -144,9 +144,18 @@ spec:
   ipAllowList:
     sourceRange:
       # The WireGuard client subnet. wg-easy assigns 10.8.0.2, .3, ...
+      #
+      # This is the ONLY range allowed. The pod CIDR (10.42.0.0/16) is
+      # deliberately NOT here: kube-proxy/flannel masquerade traffic that
+      # arrives on the node's public IP into the cni0 address
+      # (10.42.0.1), so a public request looks like it came from the pod
+      # network and would be allowed. Verified:
+      #
+      #   chain FLANNEL-POSTRTG {
+      #       ip saddr != 10.42.0.0/16 ip daddr 10.42.0.0/16 ... MASQUERADE
+      #   }
+      #
+      # With the pod CIDR allowed, a request straight to the node IP
+      # (51.68.191.40:443) still succeeded with HTTP 200. Only the
+      # tunnel range gives an unambiguous answer.
       - "10.8.0.0/24"
-      # The pod CIDR. Traffic from another pod (e.g. a health check, or
-      # the vault-secrets-operator) is not tunnelled and would otherwise
-      # be rejected. This is the same network the pods live in, so it
-      # cannot be reached from the internet.
-      - "10.42.0.0/16"
