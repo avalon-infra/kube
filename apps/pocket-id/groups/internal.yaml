@@ -1,0 +1,10 @@
+---
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDUserGroup
+metadata:
+  name: homarr-admins
+spec:
+  friendlyName: "Homarr Administrators"
+  users:
+    userRefs:
+      - name: admin

@@ -7,6 +7,7 @@ resources:
   - ingress.yaml
   - instance.yaml
   - secrets.yaml
+  - groups
   - oidc
   - users
 
