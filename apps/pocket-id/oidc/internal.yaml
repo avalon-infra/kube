@@ -29,7 +29,7 @@ spec:
   description: Secure secrets management
   isPublic: false
   callbackUrls:
-    - https://vault.matiix310.dev/avalon-sso/callback
+    - https://vault.matiix310.dev/ui/vault/auth/avalon-sso/oidc/callback
   launchUrl: https://vault.matiix310.dev
   logo:
     logoUrl: https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vault/vault-original.svg
