@@ -1,0 +1,11 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: pocket-id
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  name: pocket-id
+  owner: pocket-id
+  cluster:
+    name: pg-cluster

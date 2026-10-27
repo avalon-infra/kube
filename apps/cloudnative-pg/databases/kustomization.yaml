@@ -14,3 +14,6 @@ resources:
   - keeper-role.yaml
   - keeper-pg-secret.yaml
   - keeper-database.yaml
+  - pocket-id-role.yaml
+  - pocket-id-pg-secret.yaml
+  - pocket-id-database.yaml

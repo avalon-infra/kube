@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: pocket-id
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: pocket-id
+      repoURL: oci://ghcr.io/aclerici38/charts/pocket-id-operator
+      targetRevision: 0.16.1
+      helm:
+        valueFiles:
+          - "$values/apps/pocket-id/values.yaml"
+    - repoURL: https://github.com/avalon-infra/kube.git
+      targetRevision: HEAD
+      path: apps/pocket-id
+      ref: values
+  destination:
+    name: in-cluster
+    namespace: pocket-id
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true

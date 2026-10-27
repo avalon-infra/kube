@@ -1,0 +1,38 @@
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDInstance
+metadata:
+  name: pocket-id
+spec:
+  encryptionKey:
+    valueFrom:
+      secretKeyRef:
+        name: pocket-id-secrets
+        key: encryption-key
+  appUrl: "https://pocket-id.matiix310.dev"
+  databaseUrl:
+    valueFrom:
+      secretKeyRef:
+        name: pocket-id-db
+        key: db-url
+  persistence:
+    enabled: true
+  metrics:
+    enabled: false
+  ui:
+    appName: "Avalon SSO"
+    sessionDuration: 1440
+    accentColor: "#ffff00"
+  userManagement:
+    allowOwnAccountEdit: true
+    allowUserSignups: "disabled"
+  logging:
+    level: "info"
+    json: true
+  versionCheckDisabled: true
+  auditLogRetentionDays: 30
+  timezone: "Europe/Paris"
+  trustedProxies:
+    enabled: true
+    cidrs:
+      - 10.42.0.182/32
+      - 10.42.0.198/32
