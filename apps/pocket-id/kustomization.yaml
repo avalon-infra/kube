@@ -7,7 +7,8 @@ resources:
   - ingress.yaml
   - instance.yaml
   - secrets.yaml
-  - users.yaml
+  - oidc
+  - users
 
 configMapGenerator:
   - name: pocket-id-config

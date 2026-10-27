@@ -36,3 +36,4 @@ spec:
     cidrs:
       - 10.42.0.182/32
       - 10.42.0.198/32
+  image: pocket-id
