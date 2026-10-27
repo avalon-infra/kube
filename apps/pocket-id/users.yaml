@@ -1,0 +1,11 @@
+---
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDUser
+metadata:
+  name: admin
+spec:
+  username:
+    value: admin
+  email:
+    value: "admin@matiix310.dev"
+  admin: true

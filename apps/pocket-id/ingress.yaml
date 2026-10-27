@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pocket-id-route
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    secretName: pocket-id-tls
+  routes:
+    - match: Host(`pocket-id.matiix310.dev`)
+      kind: Rule
+      services:
+        - name: pocket-id
+          port: http
