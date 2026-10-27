@@ -39,13 +39,15 @@ envSecrets:
   dbEncryption:
     key: db-encryption-key
     existingSecret: db-secret
+  authOidcCredentials:
+    existingSecret: homarr-oidc-credentials
+    oidcClientId: client_id
+    oidcClientSecret: client_secret
 
 env:
   AUTH_OIDC_AUTO_LOGIN: true
-  AUTH_OIDC_CLIENT_NAME: authentik
-  AUTH_OIDC_GROUPS_ATTRIBUTE: groups
-  AUTH_OIDC_ISSUER: https://auth.matiix310.dev/application/o/homarr/
-  AUTH_OIDC_URI: https://auth.matiix310.dev/application/o/authorize
-  AUTH_OIDC_SCOPE_OVERWRITE: openid email profile groups
-  AUTH_LOGOUT_REDIRECT_URL: https://auth.matiix310.dev/application/o/homarr/end-session/
+  AUTH_OIDC_CLIENT_NAME: Avalon SSO
+  AUTH_OIDC_ISSUER: https://pocket-id.matiix310.dev
+  AUTH_OIDC_URI: https://pocket-id.matiix310.dev/authorize
+  AUTH_LOGOUT_REDIRECT_URL: https://pocket-id.matiix310.dev/api/oidc/end-session
   AUTH_PROVIDERS: oidc
