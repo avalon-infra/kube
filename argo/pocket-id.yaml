@@ -11,13 +11,9 @@ spec:
     - chart: pocket-id
       repoURL: oci://ghcr.io/aclerici38/charts/pocket-id-operator
       targetRevision: 0.16.1
-      helm:
-        valueFiles:
-          - "$values/apps/pocket-id/values.yaml"
     - repoURL: https://github.com/avalon-infra/kube.git
       targetRevision: HEAD
       path: apps/pocket-id
-      ref: values
   destination:
     name: in-cluster
     namespace: pocket-id
