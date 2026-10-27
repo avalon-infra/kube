@@ -13,3 +13,9 @@ spec:
   logo:
     logoUrl: https://dashboard.matiix310.dev/logo/logo.png
     darkLogoUrl: https://dashboard.matiix310.dev/logo/logo.png
+  secret:
+    additionalAnnotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "homarr"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "homarr"

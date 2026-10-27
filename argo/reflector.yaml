@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: reflector
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  sources:
+    - chart: reflector
+      repoURL: oci://ghcr.io/emberstack/helm-charts/reflector
+      targetRevision: "10.0.69"
+  destination:
+    name: in-cluster
+    namespace: reflector
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
