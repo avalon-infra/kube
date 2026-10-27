@@ -6,7 +6,7 @@ metadata:
 spec:
   name: homarr
   description: Customizable dashboard
-  isPublic: true
+  isPublic: false
   callbackUrls:
     - https://dashboard.matiix310.dev/api/auth/callback/oidc
   launchUrl: https://dashboard.matiix310.dev
