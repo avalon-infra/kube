@@ -14,3 +14,8 @@ configMapGenerator:
   - name: pocket-id-config
     literals:
       - DB_URL=postgres://pg-cluster-rw.postgres.svc.cluster.local:5432/pocket-id
+
+images:
+  - name: pocket-id
+    newName: pocketid/pocket-id
+    newTag: "v2.19.1"
