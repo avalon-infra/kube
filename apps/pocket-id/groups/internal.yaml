@@ -8,3 +8,13 @@ spec:
   users:
     userRefs:
       - name: admin
+---
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDUserGroup
+metadata:
+  name: vault-admins
+spec:
+  friendlyName: "Vault Administrators"
+  users:
+    userRefs:
+      - name: admin
