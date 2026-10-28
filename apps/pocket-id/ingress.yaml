@@ -14,5 +14,6 @@ spec:
         - name: pocket-id
           port: http
     - match: Host(`pocket-id.matiix310.dev`)
-      middlewares:
-        - name: redirect-auth
+      services:
+        - name: pocket-id
+          port: http
