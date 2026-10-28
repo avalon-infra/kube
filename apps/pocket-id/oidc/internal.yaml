@@ -34,3 +34,26 @@ spec:
   logo:
     logoUrl: https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vault/vault-original.svg
     darkLogoUrl: https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vault/vault-original.svg
+---
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDOIDCClient
+metadata:
+  name: trilium
+spec:
+  name: trilium
+  description: Customizable dashboard
+  isPublic: false
+  callbackUrls:
+    - https://dashboard.matiix310.dev/api/auth/callback/oidc
+  allowedUserGroups:
+    - name: trilium-admins
+  launchUrl: https://calendar.matiix310.dev
+  logo:
+    logoUrl: https://dashboard.matiix310.dev/logo/logo.png
+    darkLogoUrl: https://dashboard.matiix310.dev/logo/logo.png
+  secret:
+    additionalAnnotations:
+      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "trilium"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "trilium"

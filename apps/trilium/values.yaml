@@ -4,11 +4,22 @@ controllers:
       trilium:
         env:
           TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHBASEURL: "https://wiki.matiix310.dev"
-          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERBASEURL: "https://auth.matiix310.dev/application/o/trilium/"
-          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "Authentik"
-
-        envFrom:
-          - secret: trilium-oidc-secret
+          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERBASEURL:
+            valueFrom:
+              secretKeyRef:
+                name: trilium-oidc-credentials
+                key: issuer_url
+          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHISSUERNAME: "Avalon SSO"
+          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHCLIENTID:
+            valueFrom:
+              secretKeyRef:
+                name: trilium-oidc-credentials
+                key: client_id
+          TRILIUM_MULTIFACTORAUTHENTICATION_OAUTHCLIENTSECRET:
+            valueFrom:
+              secretKeyRef:
+                name: trilium-oidc-credentials
+                key: client_secret
 
 configini:
   network:

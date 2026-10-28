@@ -18,3 +18,13 @@ spec:
   users:
     userRefs:
       - name: admin
+---
+apiVersion: pocketid.internal/v1alpha1
+kind: PocketIDUserGroup
+metadata:
+  name: trilium-admins
+spec:
+  friendlyName: "Trilium Administrators"
+  users:
+    userRefs:
+      - name: admin
