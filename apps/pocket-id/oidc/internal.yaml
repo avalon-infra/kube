@@ -44,13 +44,13 @@ spec:
   description: Customizable dashboard
   isPublic: false
   callbackUrls:
-    - https://dashboard.matiix310.dev/api/auth/callback/oidc
+    - https://wiki.matiix310.dev/callback
   allowedUserGroups:
     - name: trilium-admins
-  launchUrl: https://calendar.matiix310.dev
+  launchUrl: https://wiki.matiix310.dev
   logo:
-    logoUrl: https://dashboard.matiix310.dev/logo/logo.png
-    darkLogoUrl: https://dashboard.matiix310.dev/logo/logo.png
+    logoUrl: https://wiki.matiix310.dev/favicon.ico
+    darkLogoUrl: https://wiki.matiix310.dev/favicon.ico
   secret:
     additionalAnnotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
