@@ -10,3 +10,4 @@ spec:
   commonName: pocket-id.matiix310.dev
   dnsNames:
     - "pocket-id.matiix310.dev"
+    - "auth.matiix310.dev"

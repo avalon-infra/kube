@@ -1,0 +1,9 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-auth
+spec:
+  redirectRegex:
+    regex: "^https?://[^/]*/(.*)"
+    replacement: "https://auth.matiix310.dev/${1}"

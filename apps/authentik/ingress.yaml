@@ -8,7 +8,7 @@ spec:
   tls:
     secretName: authentik-tls
   routes:
-    - match: Host(`auth.matiix310.dev`)
+    - match: Host(`authentik.matiix310.dev`)
       kind: Rule
       services:
         - name: authentik-server

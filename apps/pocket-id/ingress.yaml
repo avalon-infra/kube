@@ -8,8 +8,11 @@ spec:
   tls:
     secretName: pocket-id-tls
   routes:
-    - match: Host(`pocket-id.matiix310.dev`)
+    - match: Host(`auth.matiix310.dev`)
       kind: Rule
       services:
         - name: pocket-id
           port: http
+    - match: Host(`pocket-id.matiix310.dev`)
+      middlewares:
+        - name: redirect-auth

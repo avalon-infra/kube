@@ -8,7 +8,7 @@ spec:
       secretKeyRef:
         name: pocket-id-secrets
         key: encryption-key
-  appUrl: "https://pocket-id.matiix310.dev"
+  appUrl: "https://auth.matiix310.dev"
   databaseUrl:
     valueFrom:
       secretKeyRef:
