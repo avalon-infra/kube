@@ -10,6 +10,9 @@ spec:
   routes:
     - match: Host(`wiki.matiix310.dev`)
       kind: Rule
+      middlewares:
+        - name: cloudflare-only
+          namespace: kube-system
       services:
         - name: trilium
           port: 8080

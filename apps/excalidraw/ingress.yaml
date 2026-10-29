@@ -10,6 +10,9 @@ spec:
   routes:
     - match: Host(`draw.matiix310.dev`)
       kind: Rule
+      middlewares:
+        - name: cloudflare-only
+          namespace: kube-system
       services:
         - name: excalidraw
           port: 80

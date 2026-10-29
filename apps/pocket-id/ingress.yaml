@@ -10,10 +10,16 @@ spec:
   routes:
     - match: Host(`auth.matiix310.dev`)
       kind: Rule
+      middlewares:
+        - name: cloudflare-only
+          namespace: kube-system
       services:
         - name: pocket-id
           port: http
     - match: Host(`pocket-id.matiix310.dev`)
+      middlewares:
+        - name: cloudflare-only
+          namespace: kube-system
       services:
         - name: pocket-id
           port: http

@@ -10,6 +10,9 @@ spec:
   routes:
     - match: Host(`radicale.matiix310.dev`)
       kind: Rule
+      middlewares:
+        - name: cloudflare-only
+          namespace: kube-system
       services:
         - name: radicale
           port: 5232

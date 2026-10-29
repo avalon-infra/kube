@@ -10,6 +10,9 @@ spec:
   routes:
     - match: Host(`embeds.matiix310.dev`)
       kind: Rule
+      middlewares:
+        - name: cloudflare-only
+          namespace: kube-system
       services:
         - name: embeds
           port: 3000

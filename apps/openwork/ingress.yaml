@@ -10,11 +10,17 @@ spec:
   routes:
     - match: Host(`openwork.matiix310.dev`)
       kind: Rule
+      middlewares:
+        - name: cloudflare-only
+          namespace: kube-system
       services:
         - name: openwork-openwork-ee-den-web
           port: http
     - match: Host(`openwork-api.matiix310.dev`)
       kind: Rule
+      middlewares:
+        - name: cloudflare-only
+          namespace: kube-system
       services:
         - name: openwork-openwork-ee-den-api
           port: http
