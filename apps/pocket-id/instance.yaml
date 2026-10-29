@@ -17,6 +17,8 @@ spec:
   env:
     - name: TRUSTED_PLATFORM
       value: CF-Connecting-IP
+    - name: CLOUDFLARE_LOCATION_HEADERS
+      value: "true"
   persistence:
     enabled: true
   metrics:
