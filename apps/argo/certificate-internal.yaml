@@ -1,0 +1,23 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: argocd-server-tls
+spec:
+  secretName: argocd-server-tls
+  issuerRef:
+    name: internal-cluster-issuer
+    kind: ClusterIssuer
+  commonName: argocd-server.argocd.svc.cluster.local
+  dnsNames:
+    - "argocd-server.argocd.svc.cluster.local"
+    - "argocd-server.argocd.svc"
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  duration: 2160h # 90 days
+  renewBefore: 720h # 30 days
+  secretTemplate:
+    labels:
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd
